@@ -1,0 +1,227 @@
+---
+import { getCollection } from 'astro:content'
+import Base from '../layouts/Base.astro'
+import { KINDS } from '../taxonomy'
+
+const all = await getCollection('entries')
+const shown = all.filter((e) => e.data.status !== 'dead')
+
+const points = shown
+  .filter((e) => e.data.location?.lat != null && e.data.location?.lng != null)
+  .map((e) => ({
+    id: e.id,
+    name: e.data.name,
+    blurb: e.data.blurb,
+    kind: e.data.kind,
+    kindLabel: KINDS[e.data.kind],
+    url: e.data.url,
+    place: [e.data.location!.city, e.data.location!.region].filter(Boolean).join(', '),
+    lat: e.data.location!.lat!,
+    lng: e.data.location!.lng!,
+    // Drives the opening view. Keyed off the taxonomy rather than a
+    // coordinate bounding box, so it stays right if the vocabulary grows.
+    india: e.data.geography.some((g) => g.startsWith('india')),
+  }))
+  .sort((a, b) => a.name.localeCompare(b.name, 'en', { sensitivity: 'base' }))
+
+const missing = shown.length - points.length
+const inIndia = points.filter((p) => p.india).length
+const elsewhere = points.length - inIndia
+---
+
+<Base
+  title="Map"
+  description="Where the organisations in the index are based."
+>
+  <div class="map-head">
+    <h1>Map</h1>
+    <p>
+      Where the organisations are based — not where their work applies. A
+      dataset covering all of India is made in one office; a global archive
+      is made in one city. Read the pins as addresses, not as coverage.
+    </p>
+    <p class="map-note">
+      {points.length} of {shown.length} entries have a location.
+      {missing} do not, mostly because they have no single place to put —
+      a collaboratively built map has no head office. Locations are
+      city-level.
+    </p>
+
+    {elsewhere > 0 && (
+      <p class="map-scope">
+        <span data-scope-label>Showing India — {inIndia} of {points.length} located entries.</span>
+        <button type="button" class="linkish" data-scope-toggle data-elsewhere={elsewhere}>
+          Show all {points.length}
+        </button>
+      </p>
+    )}
+  </div>
+
+  <div class="map-wrap">
+    <div id="map" role="application" aria-label="Map of entry locations"></div>
+    <p class="map-fallback">Loading the map…</p>
+  </div>
+
+  <script is:inline type="application/json" id="points" set:html={JSON.stringify(points)} />
+</Base>
+
+<script>
+  import L from 'leaflet'
+  import 'leaflet/dist/leaflet.css'
+
+  type Point = {
+    id: string; name: string; blurb: string; kind: string
+    kindLabel: string; url: string; place: string
+    lat: number; lng: number; india: boolean
+  }
+
+  const el = document.getElementById('map')!
+  const raw = document.getElementById('points')!.textContent ?? '[]'
+  const points: Point[] = JSON.parse(raw)
+  document.querySelector('.map-fallback')?.remove()
+
+  const TILES = {
+    light: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
+    dark: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
+  }
+
+  const isDark = () =>
+    (document.documentElement.dataset.theme ??
+      (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')) === 'dark'
+
+  const kindColour = (kind: string) =>
+    getComputedStyle(document.documentElement)
+      .getPropertyValue(`--k-${kind}`)
+      .trim() || '#666'
+
+  // Scroll zoom is on. Gating it behind a click is the right call for a
+  // map embedded mid-article, where trapping the wheel steals the page
+  // scroll — but this page is the map, so the gate was only friction.
+  const map = L.map(el, {
+    scrollWheelZoom: true,
+    worldCopyJump: true,
+    zoomControl: true,
+    attributionControl: true,
+  })
+
+  let tiles = L.tileLayer(isDark() ? TILES.dark : TILES.light, {
+    subdomains: 'abcd',
+    maxZoom: 18,
+    // Retina tiles are four times the bytes for a basemap this plain.
+    detectRetina: false,
+    attribution:
+      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+  }).addTo(map)
+
+  /*
+    Locations are city-level, so four Delhi organisations land on exactly
+    the same coordinate. Nudging them apart would invent a precision the
+    data does not have, so coincident entries become one marker carrying
+    a count — which is what is actually true: they share a city.
+  */
+  const groups = new Map<string, Point[]>()
+  for (const p of points) {
+    const key = `${p.lat},${p.lng}`
+    ;(groups.get(key) ?? groups.set(key, []).get(key)!).push(p)
+  }
+
+  const markers: { marker: L.Marker; group: Point[] }[] = []
+
+  const pinHtml = (g: Point[]) => {
+    const uniform = g.every((x) => x.kind === g[0].kind)
+    const colour = uniform ? kindColour(g[0].kind) : 'var(--ink-soft)'
+    return g.length === 1
+      ? `<span class="pin" style="background:${colour}"></span>`
+      : `<span class="pin pin--many" style="background:${colour}">${g.length}</span>`
+  }
+
+  const esc = (s: string) =>
+    s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]!))
+
+  for (const g of groups.values()) {
+    const size = g.length === 1 ? 12 : 20
+    const m = L.marker([g[0].lat, g[0].lng], {
+      icon: L.divIcon({
+        html: pinHtml(g),
+        className: 'pin-wrap',
+        iconSize: [size, size],
+        iconAnchor: [size / 2, size / 2],
+      }),
+      keyboard: true,
+      title: g.length === 1 ? g[0].name : `${g.length} entries in ${g[0].place}`,
+    }).addTo(map)
+
+    m.bindPopup(
+      `<span class="pk">${esc(g[0].place)}</span>` +
+        g
+          .map(
+            (p) =>
+              `<span class="prow">` +
+              `<a class="pn" href="/e/${p.id}">${esc(p.name)}</a>` +
+              `<span class="pb">${esc(p.blurb)}</span>` +
+              `<a class="po" href="${p.url}" rel="noopener">${esc(p.kindLabel)} &#183; visit site &#8599;</a>` +
+              `</span>`,
+          )
+          .join(''),
+      { closeButton: true, maxWidth: 280, maxHeight: 300 },
+    )
+
+    markers.push({ marker: m, group: g })
+  }
+
+  /*
+    Open on India rather than on the whole set. Fitting every point pulls
+    the view out to the world because of San Francisco, Oxford and DC —
+    which makes the map open on the part of the index it says least
+    about. The Indian entries are the ones worth landing on.
+  */
+  const bounds = (ps: Point[]) =>
+    L.latLngBounds(ps.map((p) => [p.lat, p.lng] as [number, number]))
+
+  const indian = points.filter((p) => p.india)
+  const home = indian.length ? bounds(indian) : bounds(points)
+
+  // maxZoom matters: three Delhi entries share one coordinate, and
+  // without a cap fitBounds would open at street level on an office.
+  map.fitBounds(home, { padding: [56, 56], maxZoom: 6 })
+
+  const toggle = document.querySelector<HTMLButtonElement>('[data-scope-toggle]')
+  const label = document.querySelector('[data-scope-label]')
+  if (toggle && label) {
+    let showingAll = false
+    const homeLabel = label.textContent
+    toggle.addEventListener('click', () => {
+      showingAll = !showingAll
+      map.flyToBounds(showingAll ? bounds(points) : home, {
+        padding: [56, 56],
+        maxZoom: showingAll ? 4 : 6,
+        duration: matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 0.8,
+      })
+      toggle.textContent = showingAll ? 'Back to India' : `Show all ${points.length}`
+      label.textContent = showingAll
+        ? `Showing everything — ${points.length} located entries.`
+        : homeLabel
+    })
+  }
+
+  // Repaint on theme change: swap the basemap and re-read the tints.
+  const repaint = () => {
+    tiles.setUrl(isDark() ? TILES.dark : TILES.light)
+    for (const { marker, group } of markers) {
+      const size = group.length === 1 ? 12 : 20
+      marker.setIcon(
+        L.divIcon({
+          html: pinHtml(group),
+          className: 'pin-wrap',
+          iconSize: [size, size],
+          iconAnchor: [size / 2, size / 2],
+        }),
+      )
+    }
+  }
+  new MutationObserver(repaint).observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['data-theme'],
+  })
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', repaint)
+</script>

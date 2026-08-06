@@ -1,0 +1,2015 @@
+@import '@fontsource-variable/public-sans';
+@import '@fontsource-variable/source-serif-4';
+@import '@fontsource-variable/source-serif-4/wght-italic.css';
+
+/*
+  Two families, two jobs, borrowed from how a dictionary sets a page:
+  the headword is a sturdy grotesque you scan, the definition is a text
+  serif you read. Public Sans is a Libre Franklin cut commissioned for
+  US government sites — a civic index set in the public sector's own
+  typeface is the one piece of wit in here.
+*/
+
+:root {
+  --font-ui: 'Public Sans Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-text: 'Source Serif 4 Variable', ui-serif, Georgia, serif;
+
+  --paper: #fafaf9;
+  --ink: #14151a;
+  --ink-soft: #3f414a;
+  --ink-muted: #6b6d77;
+  --rule: #e4e4e1;
+  --accent: #1c5cab;
+
+  /*
+    Kind is the only thing on this page that carries hue — colour means
+    "what sort of thing is this" and nothing else. Seven slots in fixed
+    order, never cycled, never reused for a second meaning.
+
+    These are a validated categorical palette pulled down to 80% chroma in
+    OKLab, which is as soft as it goes: below that the aqua and the rose
+    drop under the chroma floor and start reading grey, and the rose and
+    the amber stop being tellable apart. Validated at this exact chroma
+    against this site's own surfaces — adjacent pairs clear CVD ΔE 8 and
+    normal-vision ΔE 15.
+  */
+  --k-organisation: #407ac4;
+  --k-dataset: #dc744e;
+  --k-directory: #49aa80;
+  --k-tool: #e2a649;
+  --k-publication: #dc85a4;
+  --k-dashboard: #2e7f2a;
+  --k-archive: #4a4296;
+  --k-community: #d35b56;
+
+  --gutter: 1.5rem;
+  --measure: 40rem;
+  --rail: 15rem;
+
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+  color-scheme: light;
+}
+
+/* Dark is selected, not flipped: its own steps from the same ramps,
+   re-validated against the dark surface. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --paper: #101116;
+    --ink: #e9e9e7;
+    --ink-soft: #b4b6bd;
+    --ink-muted: #8b8d96;
+    --rule: #23242b;
+    --accent: #6da7ec;
+    /* Must stay identical to the [data-theme='dark'] block below — this
+       is what an OS-dark visitor gets before touching the toggle. */
+    --k-organisation: #4988d7;
+    --k-dataset: #ce633b;
+    --k-directory: #3a9b74;
+    --k-tool: #c28833;
+    --k-publication: #cb5c82;
+    --k-dashboard: #278024;
+    --k-archive: #9088dd;
+    --k-community: #db706e;
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme='dark'] {
+  --paper: #101116;
+  --ink: #e9e9e7;
+  --ink-soft: #b4b6bd;
+  --ink-muted: #8b8d96;
+  --rule: #23242b;
+  --accent: #6da7ec;
+  /* Dark is selected, not flipped — its own steps, muted to 85% and
+     re-validated against the dark surface. */
+  --k-organisation: #4988d7;
+  --k-dataset: #ce633b;
+  --k-directory: #3a9b74;
+  --k-tool: #c28833;
+  --k-publication: #cb5c82;
+  --k-dashboard: #278024;
+  --k-archive: #9088dd;
+  --k-community: #db706e;
+  color-scheme: dark;
+}
+
+/* Resolve the slot once; everything downstream reads --k. */
+[data-kind='organisation'] { --k: var(--k-organisation); }
+[data-kind='dataset'] { --k: var(--k-dataset); }
+[data-kind='tool'] { --k: var(--k-tool); }
+[data-kind='publication'] { --k: var(--k-publication); }
+[data-kind='dashboard'] { --k: var(--k-dashboard); }
+[data-kind='archive'] { --k: var(--k-archive); }
+[data-kind='directory'] { --k: var(--k-directory); }
+[data-kind='community'] { --k: var(--k-community); }
+
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html {
+  -webkit-text-size-adjust: 100%;
+  /* The index is long enough to have a scrollbar and most entry pages
+     are not. Without a reserved gutter the viewport changes width
+     between them and every centred thing on the page jumps sideways. */
+  scrollbar-gutter: stable;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+a { color: inherit; }
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 1px;
+}
+
+::selection {
+  background: color-mix(in oklab, var(--accent) 18%, transparent);
+}
+
+/* rail + gap + measure, exactly — so the grid fills the shell and the
+   composition has no leftover margin on the right. */
+.shell {
+  max-width: 61rem;
+  margin: 0 auto;
+  padding-inline: var(--gutter);
+}
+
+/* Keyboard users get out of the masthead in one press. */
+.skip {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  translate: -50% -120%;
+  z-index: 10;
+  padding: 0.6rem 1rem;
+  background: var(--paper);
+  border: 1px solid var(--accent);
+  border-radius: 0 0 3px 3px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--ink);
+  text-decoration: none;
+  transition: translate 0.18s var(--ease);
+}
+
+.skip:focus-visible { translate: -50% 0; }
+
+/* Screen-reader-only, for labels the design carries visually. */
+.sr {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ── Masthead ─────────────────────────────────────────────────────── */
+
+.masthead {
+  display: flex;
+  align-items: baseline;
+  gap: 1.5rem;
+  padding-block: 1.75rem 1.5rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+.wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-text);
+  font-size: 1.18rem;
+  font-weight: 560;
+  letter-spacing: -0.025em;
+  text-decoration: none;
+  margin-right: auto;
+}
+
+.wordmark-text { translate: 0 -0.04em; }
+
+.wordmark .mark {
+  inline-size: 13px;
+  block-size: 13px;
+  fill: var(--accent);
+  translate: 0 -0.5px;
+  transition: opacity 0.18s var(--ease);
+}
+
+.wordmark:hover .mark { opacity: 0.6; }
+
+.masthead nav {
+  display: flex;
+  align-items: baseline;
+  gap: 1.375rem;
+}
+
+.masthead a:not(.wordmark),
+.theme-toggle {
+  font-size: 0.8125rem;
+  font-weight: 450;
+  color: var(--ink-muted);
+  text-decoration: none;
+  transition: color 0.15s var(--ease);
+}
+
+.masthead a:not(.wordmark):hover,
+.theme-toggle:hover { color: var(--ink); }
+
+/* Where am I — the one thing the header was not saying. */
+.masthead a[aria-current='page'] {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.masthead nav a {
+  position: relative;
+  padding-bottom: 0.2rem;
+}
+
+.masthead nav a[aria-current='page']::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  bottom: -0.1rem;
+  block-size: 1.5px;
+  border-radius: 2px;
+  background: var(--accent);
+}
+
+.theme-toggle {
+  display: grid;
+  place-items: center;
+  inline-size: 1.5rem;
+  block-size: 1.5rem;
+  margin-inline-start: -0.25rem;
+  translate: 0 0.2em;
+  background: none;
+  border: 0;
+  padding: 0;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.theme-toggle svg {
+  inline-size: 14px;
+  block-size: 14px;
+  rotate: -30deg;
+  transition: rotate 0.4s var(--ease);
+}
+
+.theme-toggle[aria-pressed='true'] svg { rotate: 150deg; }
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-toggle svg { transition: none; }
+}
+
+/* ── Lede ─────────────────────────────────────────────────────────── */
+
+/*
+  The masthead block: statement on the left, what arrived most recently
+  on the right, the tally and the composition strip closing it across
+  both. The strip is the rule that divides this from the index, so it
+  earns its place structurally rather than sitting there as an ornament.
+*/
+
+.opening {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 14rem;
+  gap: 0 4rem;
+  padding-block: 4.5rem 3.5rem;
+  align-items: start;
+}
+
+.statement {
+  margin: 0;
+  max-width: 30rem;
+  font-family: var(--font-text);
+  font-size: 1.5rem;
+  line-height: 1.38;
+  letter-spacing: -0.011em;
+  color: var(--ink);
+  text-wrap: pretty;
+}
+
+.statement em {
+  font-style: italic;
+  color: var(--ink-soft);
+}
+
+.recent h2 {
+  margin: 0.4rem 0 0.875rem;
+  padding-bottom: 0.625rem;
+  border-bottom: 1px solid var(--rule);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+.recent ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.recent a {
+  display: grid;
+  grid-template-columns: 5px minmax(0, 1fr);
+  align-items: baseline;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  line-height: 1.35;
+  color: var(--ink-soft);
+  text-decoration: none;
+  transition: color 0.15s var(--ease);
+}
+
+.recent a:hover { color: var(--ink); }
+
+.recent .dot {
+  inline-size: 5px;
+  block-size: 5px;
+  border-radius: 50%;
+  background: var(--k);
+  translate: 0 -2px;
+}
+
+.opening-meta {
+  grid-column: 1 / -1;
+  margin: 3.25rem 0 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 450;
+  letter-spacing: 0.015em;
+  color: var(--ink-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/*
+  The composition strip: one bar, segmented by kind, in the same seven
+  hues the chips and the rail use. It states the shape of the collection
+  before you have read a single entry — and it is the reason the colour
+  system exists at all, rather than being decoration applied afterwards.
+*/
+
+.strip {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 2px;
+  block-size: 4px;
+}
+
+.strip span {
+  flex: var(--n) 1 0;
+  background: var(--k);
+  border-radius: 2px;
+  opacity: 0.85;
+  transition: opacity 0.18s var(--ease);
+}
+
+.strip:hover span { opacity: 0.35; }
+.strip span:hover { opacity: 1; }
+
+/* ── The two-column index ─────────────────────────────────────────── */
+
+.index {
+  display: grid;
+  grid-template-columns: var(--rail) minmax(0, 1fr);
+  gap: 0 3.25rem;
+  align-items: start;
+  padding-bottom: 6rem;
+}
+
+/* A full-height rule between rail and list. The two columns were only
+   held apart by whitespace, which left the rail looking like it had
+   drifted there rather than been built. */
+.index > .list {
+  border-left: 1px solid var(--rule);
+  padding-left: 3.25rem;
+  min-height: 100vh;
+}
+
+/*
+  The rail is the signature. It is a filter, a legend and a bar chart of
+  the collection at once: each row carries a pale underlay whose width is
+  that facet's share of the *currently visible* set, so narrowing the
+  index visibly redraws the shape of what is left. One element, three
+  jobs — which is the opposite of decoration.
+*/
+
+.rail {
+  position: sticky;
+  top: 2rem;
+  display: grid;
+  gap: 2rem;
+  align-content: start;
+  /* The vocabulary is longer than most viewports; without this, sticky
+     pins the top and the last facet group can never be scrolled to. */
+  max-height: calc(100dvh - 4rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  /* A scrollbar track running parallel to the column rule read as a
+     seam. The fade at the bottom edge signals the overflow instead. */
+  scrollbar-width: none;
+  padding-bottom: 1.5rem;
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 2.5rem), transparent 100%);
+}
+
+.rail::-webkit-scrollbar { width: 0; height: 0; }
+
+.search {
+  position: relative;
+}
+
+.search input {
+  width: 100%;
+  font-family: inherit;
+  font-size: 0.875rem;
+  color: var(--ink);
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--rule);
+  border-radius: 0;
+  padding: 0.5rem 1.25rem 0.5rem 0;
+  transition: border-color 0.18s var(--ease);
+}
+
+.search input::placeholder { color: var(--ink-muted); }
+.search input:focus { outline: none; border-bottom-color: var(--accent); }
+.search input:focus-visible { outline: none; }
+
+.search .clear {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  translate: 0 -50%;
+  border: 0;
+  background: none;
+  padding: 0.25rem;
+  font-size: 0.875rem;
+  line-height: 1;
+  color: var(--ink-muted);
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s var(--ease);
+}
+
+.search[data-filled] .clear { opacity: 1; pointer-events: auto; }
+.search .clear:hover { color: var(--ink); }
+
+/* Each group opens with a rule and a heading in full ink. The rail was
+   a list of pale links; it should read as the spine of the page. */
+.facet-groups {
+  display: grid;
+  gap: 2rem;
+}
+
+/* The search field's own underline already opens the rail; a second rule
+   25px below it just framed an empty strip. */
+.facet-groups .facet:first-child h2 {
+  border-top: 0;
+  padding-top: 0;
+}
+
+/* Desktop shows the whole vocabulary; the toggle only exists on narrow. */
+.filters-toggle {
+  display: none;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 650;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink);
+  background: none;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: 0.6rem 0.75rem;
+  cursor: pointer;
+}
+
+.filters-toggle::after {
+  content: '';
+  margin-left: auto;
+  inline-size: 6px;
+  block-size: 6px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  rotate: 45deg;
+  translate: 0 -2px;
+  transition: rotate 0.2s var(--ease);
+}
+
+.rail[data-open] .filters-toggle::after { rotate: -135deg; translate: 0 1px; }
+
+.ft-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-inline-size: 1.15rem;
+  block-size: 1.15rem;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--paper);
+  font-size: 0.6875rem;
+  letter-spacing: 0;
+}
+
+.ft-count[hidden] { display: none; }
+
+.facet h2 {
+  margin: 0 0 0.875rem;
+  padding-top: 0.875rem;
+  border-top: 1px solid var(--rule);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.facet ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/*
+  Sub-headings inside a long facet. Thirty topics as one flat run is the
+  failure this vocabulary was redesigned to avoid — nobody scans that far
+  — so the rail labels the runs. Purely visual: the entry still carries a
+  flat term.
+*/
+/* Deliberately NOT the uppercase-and-tracked treatment the facet heading
+   above it uses. Two levels distinguished only by a pixel of size and a
+   shade of grey read as siblings, which made "People" look like a topic
+   called People rather than a heading over one. Changing case does the
+   work that size alone could not. */
+.facet li[data-sub]::before {
+  content: attr(data-sub);
+  display: block;
+  margin: 1.125rem 0 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--ink-muted);
+}
+
+.facet li:first-child[data-sub]::before { margin-top: 0; }
+
+/*
+  Label, dot leader, count — the way a printed index has always set this
+  row. The bar chart that used to live here read as a widget bolted on;
+  stripping it left a phone book. Leaders are the typographic answer:
+  they tie the name to its figure, give the column structure, and are
+  set rather than built.
+*/
+.facet button {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0.75rem, 1fr) auto;
+  align-items: baseline;
+  gap: 0 0.5rem;
+  width: 100%;
+  font-family: inherit;
+  font-size: 0.8438rem;
+  font-weight: 450;
+  line-height: 1.35;
+  color: var(--ink-soft);
+  text-align: left;
+  background: none;
+  border: 0;
+  padding: 0.42rem 0;
+  cursor: pointer;
+  transition: color 0.15s var(--ease), opacity 0.2s var(--ease);
+}
+
+.facet[data-group='kind'] button {
+  grid-template-columns: 6px auto minmax(0.75rem, 1fr) auto;
+  gap: 0 0.55rem;
+}
+
+.facet .leader {
+  block-size: 0.75em;
+  align-self: center;
+  background-image: radial-gradient(
+    circle at center,
+    currentColor 0.9px,
+    transparent 1px
+  );
+  background-size: 5px 5px;
+  background-repeat: repeat-x;
+  background-position: left center;
+  color: var(--ink-muted);
+  opacity: 0.4;
+  transition: opacity 0.15s var(--ease);
+}
+
+.facet button:hover .leader { opacity: 0.75; }
+.facet button[aria-pressed='true'] .leader { color: var(--accent); opacity: 0.9; }
+.facet .label { min-inline-size: 0; }
+
+
+/*
+  Kind is the legend, not a chart: it carries the dot that every entry
+  chip and every strip segment repeats, and the strip already states its
+  composition. Giving it bars too made four columns of the same gesture.
+*/
+.facet .dot {
+  position: relative;
+  inline-size: 6px;
+  block-size: 6px;
+  border-radius: 50%;
+  background: var(--k);
+  flex: none;
+  translate: 0 -1px;
+  transition: scale 0.18s var(--ease);
+}
+
+.facet[data-group='kind'] button:hover .dot { scale: 1.25; }
+.facet[data-group='kind'] button[data-empty] .dot { background: var(--ink-muted); }
+
+
+/* The Kind group's bars are the legend: each one is the same hue as the
+   chip dot on every entry of that kind. Every other group stays neutral,
+   so hue on this page only ever means "kind". */
+.facet[data-group='kind'] button[aria-pressed='true'] { color: var(--ink); }
+.facet[data-group='kind'] button[aria-pressed='true'] .count { color: var(--ink); }
+
+.facet button:hover { color: var(--ink); }
+
+.facet button[aria-pressed='true'] {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.facet button[aria-pressed='true'] .count { color: var(--accent); }
+
+/* Facets that would return nothing recede rather than vanish, so the
+   vocabulary stays visible and the list never jumps under the cursor. */
+.facet button[data-empty] {
+  opacity: 0.38;
+  cursor: default;
+}
+
+.facet button[data-empty]:hover { color: var(--ink-soft); }
+
+.facet .label { position: relative; }
+
+/* The figure is the payload of the row, so it stops whispering. */
+.facet .count {
+  position: relative;
+  font-size: 0.8125rem;
+  font-weight: 550;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+
+.reset {
+  justify-self: start;
+  font-family: inherit;
+  font-size: 0.75rem;
+  color: var(--ink-muted);
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--rule);
+}
+
+.reset:hover { color: var(--ink); }
+.reset[hidden] { display: none; }
+
+/* ── Entries ──────────────────────────────────────────────────────── */
+
+/*
+  No rules between entries and no 01/02/03 markers: the order here is
+  alphabetical, so a number would imply a sequence that isn't there.
+  Separation is whitespace and the weight of the headword alone.
+*/
+
+.entries {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-width: var(--measure);
+}
+
+.entry + .entry { margin-top: 2.625rem; }
+
+.entry { position: relative; }
+
+.entry-link {
+  display: block;
+  text-decoration: none;
+  padding: 0.75rem 2.25rem 0.75rem 0.875rem;
+  margin: -0.75rem -0.875rem;
+  border-radius: 3px;
+  transition: background-color 0.18s var(--ease);
+}
+
+.entry-link:hover {
+  background: color-mix(in oklab, var(--k) 5%, transparent);
+}
+
+/* Sits above the row link rather than inside it — nesting anchors is
+   invalid and breaks keyboard order. */
+.entry .out {
+  position: absolute;
+  top: 0.1rem;
+  right: 0;
+  display: grid;
+  place-items: center;
+  inline-size: 1.75rem;
+  block-size: 1.75rem;
+  border-radius: 3px;
+  color: var(--ink-muted);
+  opacity: 0;
+  transition: opacity 0.18s var(--ease), color 0.18s var(--ease),
+    background-color 0.18s var(--ease);
+}
+
+.entry .out svg { inline-size: 10px; block-size: 10px; }
+
+.entry:hover .out,
+.entry .out:focus-visible { opacity: 1; }
+
+.entry .out:hover {
+  color: var(--k);
+  background: color-mix(in oklab, var(--k) 10%, transparent);
+}
+
+@media (hover: none) {
+  .entry .out { opacity: 1; }
+}
+
+.entry .head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.entry .name {
+  font-size: 1.125rem;
+  font-weight: 620;
+  letter-spacing: -0.014em;
+  color: var(--ink);
+  transition: color 0.15s var(--ease);
+}
+
+/* The name stays in ink on hover — several of the kind hues are fine as
+   marks but too light to carry body text. */
+.entry-link:hover .name { color: var(--ink); }
+
+/* Held to a shorter measure than the row it sits in — two full lines of
+   this length is the rhythm the whole list wants. */
+.entry .blurb {
+  margin: 0.375rem 0 0;
+  max-inline-size: 33rem;
+  font-family: var(--font-text);
+  font-size: 1rem;
+  line-height: 1.52;
+  color: var(--ink-muted);
+  text-wrap: pretty;
+}
+
+/*
+  Tags: sentence case, not the shouty tracked-uppercase micro-caps they
+  were. Only the kind chip is tinted, and its dot is the mark that
+  actually carries identity — the label beside it stays in ink, so the
+  colour never has to be legible to be understood.
+*/
+
+.entry .facets {
+  margin-top: 0.625rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3125rem;
+}
+
+/* Outlined, not filled. A tinted pill per row read as candy; a hairline
+   chip with one small saturated dot puts the colour exactly where it
+   carries meaning and nowhere else. */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.015em;
+  line-height: 1;
+  padding: 0.3rem 0.5rem 0.33rem;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  color: var(--ink-muted);
+  white-space: nowrap;
+  transition: border-color 0.18s var(--ease), color 0.18s var(--ease);
+}
+
+.chip--kind {
+  color: var(--ink-soft);
+  font-weight: 600;
+}
+
+.chip--kind::before {
+  content: '';
+  inline-size: 5px;
+  block-size: 5px;
+  border-radius: 50%;
+  background: var(--k);
+}
+
+.entry-link:hover .chip {
+  border-color: color-mix(in oklab, var(--ink) 18%, transparent);
+}
+
+.entry-link:hover .chip--kind {
+  border-color: color-mix(in oklab, var(--k) 55%, transparent);
+  color: var(--ink);
+}
+
+.entry[data-status='dormant'] .name::after,
+.entry[data-status='dead'] .name::after {
+  content: attr(data-status-label);
+  margin-left: 0.5rem;
+  font-size: 0.625rem;
+  font-weight: 500;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  vertical-align: 0.12em;
+}
+
+.entry[hidden] { display: none; }
+
+.empty {
+  max-width: var(--measure);
+  font-family: var(--font-text);
+  font-size: 1rem;
+  color: var(--ink-muted);
+}
+
+.empty[hidden] { display: none; }
+
+/* ── Prose pages ──────────────────────────────────────────────────── */
+
+.prose {
+  max-width: var(--measure);
+  padding-block: 3.5rem 6rem;
+  font-family: var(--font-text);
+  font-size: 1rem;
+  line-height: 1.65;
+  color: var(--ink-soft);
+}
+
+.prose h1 {
+  font-family: var(--font-ui);
+  font-size: 1.5rem;
+  font-weight: 650;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+  margin: 0 0 1.25rem;
+}
+
+.prose h2 {
+  font-family: var(--font-ui);
+  font-size: 0.6875rem;
+  font-weight: 650;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  margin: 2.75rem 0 0.875rem;
+}
+
+.prose p { margin: 0 0 1.125rem; text-wrap: pretty; }
+.prose ol, .prose ul { margin: 0 0 1.125rem; padding-left: 1.125rem; }
+.prose li { margin-bottom: 0.5rem; }
+
+.prose a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-thickness: 1px;
+  text-decoration-color: color-mix(in oklab, var(--accent) 35%, transparent);
+}
+
+.prose a:hover { text-decoration-color: var(--accent); }
+
+.prose code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.875em;
+  background: color-mix(in oklab, var(--ink) 6%, transparent);
+  padding: 0.1em 0.3em;
+  border-radius: 2px;
+}
+
+/* ── Editorial pages ──────────────────────────────────────────────── */
+
+.page-head {
+  padding-block: 4rem 0;
+  max-width: 40rem;
+}
+
+.page-head h1 {
+  margin: 0 0 1.5rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+/* Same treatment as the index masthead, so the two pages read as one
+   publication rather than a site and its appendix. */
+.page-head .statement {
+  margin: 0;
+  /* Same measure as .lead below it, so the left edge of the page has one
+     column rather than two that nearly agree. */
+  max-width: 34rem;
+  font-family: var(--font-text);
+  font-size: 1.4375rem;
+  line-height: 1.4;
+  letter-spacing: -0.011em;
+  color: var(--ink);
+  text-wrap: pretty;
+}
+
+.page-head .statement em { font-style: italic; color: var(--ink-soft); }
+
+.about-block {
+  max-width: 44rem;
+  padding-block: 3.25rem 0;
+}
+
+
+.about-block > h2 {
+  margin: 0 0 1rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--rule);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.about-block .lead {
+  margin: 0 0 1.75rem;
+  max-width: 34rem;
+  font-family: var(--font-text);
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--ink-soft);
+  text-wrap: pretty;
+}
+
+.about-block .footnote {
+  margin: 1.75rem 0 0;
+  max-width: 34rem;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: var(--ink-muted);
+}
+
+.prose-col p {
+  margin: 0 0 1rem;
+  font-family: var(--font-text);
+  font-size: 1rem;
+  line-height: 1.62;
+  color: var(--ink-soft);
+  text-wrap: pretty;
+}
+
+.prose-col p:last-child { margin-bottom: 0; }
+.prose-col em { font-style: italic; color: var(--ink); }
+
+.prose-col a,
+.about-block .footnote a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-color: color-mix(in oklab, var(--accent) 35%, transparent);
+}
+
+.prose-col a:hover { text-decoration-color: var(--accent); }
+
+/* The vocabulary, shown rather than described — same dots the index and
+   the map use, with live counts so the page cannot go stale. */
+.kind-table {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.kind-table li {
+  display: grid;
+  grid-template-columns: 6px 8.5rem minmax(0, 1fr) 1.5rem;
+  align-items: baseline;
+  gap: 0 0.75rem;
+  padding: 0.7rem 0;
+  border-top: 1px solid var(--rule);
+}
+
+.kind-table li:last-child { border-bottom: 1px solid var(--rule); }
+
+.kind-table .dot {
+  inline-size: 6px;
+  block-size: 6px;
+  border-radius: 50%;
+  background: var(--k);
+  translate: 0 -1px;
+}
+
+.kind-table .k-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.kind-table .k-note {
+  font-family: var(--font-text);
+  font-size: 0.9375rem;
+  line-height: 1.45;
+  color: var(--ink-muted);
+}
+
+.kind-table .k-count {
+  justify-self: end;
+  font-size: 0.8125rem;
+  font-weight: 550;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+
+.two-up {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 2rem 3rem;
+}
+
+.col-head {
+  margin: 0 0 0.875rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.col-head--in { color: var(--k-tool); }
+.col-head--out { color: var(--ink-muted); }
+
+.marks {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.625rem;
+}
+
+.marks li {
+  position: relative;
+  padding-left: 1.25rem;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  font-family: var(--font-text);
+  color: var(--ink-soft);
+}
+
+.marks li::before {
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+.marks--in li::before { content: '+'; color: var(--k-tool); }
+.marks--out li::before { content: '–'; color: var(--ink-muted); }
+
+.about-cta { padding-bottom: 6rem; }
+
+@media (max-width: 40rem) {
+  .page-head .statement { font-size: 1.1875rem; }
+
+  .kind-table li {
+    grid-template-columns: 6px minmax(0, 1fr) 1.5rem;
+    row-gap: 0.2rem;
+  }
+
+  .kind-table .k-note { grid-column: 2 / -1; }
+}
+
+/* ── Submission form ──────────────────────────────────────────────── */
+
+/*
+  Underlines, not boxes — the rest of the site is hairline rules and the
+  rail's search field is an underline. A bordered form read as a
+  different website pasted in.
+*/
+
+#form { padding-bottom: 4rem; }
+
+.step { padding-block: 2.25rem 0; }
+
+.step-h {
+  margin: 0 0 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--rule);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+/* Step one is one field, so it carries the weight. */
+.lookup {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.75rem 1rem;
+  max-width: 40rem;
+}
+
+.lookup input {
+  flex: 1 1 20rem;
+  min-inline-size: 0;
+  font-family: inherit;
+  font-size: 1.25rem;
+  color: var(--ink);
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--rule);
+  padding: 0.5rem 0 0.6rem;
+  transition: border-color 0.18s var(--ease);
+}
+
+.lookup input::placeholder { color: var(--ink-muted); }
+.lookup input:focus,
+.lookup input:focus-visible { outline: none; border-bottom-color: var(--accent); }
+
+.btn {
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 620;
+  padding: 0.6rem 1.1rem;
+  border-radius: 3px;
+  border: 1px solid var(--rule);
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.18s var(--ease), border-color 0.18s var(--ease);
+}
+
+.btn--primary { background: var(--accent); border-color: var(--accent); color: var(--paper); }
+.btn--primary:hover:not(:disabled) { background: color-mix(in oklab, var(--accent) 85%, var(--ink)); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.linkish {
+  font: inherit; color: var(--accent); background: none; border: 0; padding: 0;
+  cursor: pointer; text-decoration: underline; text-underline-offset: 2px;
+}
+
+/* Fields left, live preview right — the preview stays put while you
+   scroll the form, which is the whole point of it. */
+.compose {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 17rem;
+  gap: 0 3rem;
+  align-items: start;
+}
+
+.compose-fields { min-inline-size: 0; }
+
+.compose-preview { position: sticky; top: 2rem; padding-top: 2.25rem; }
+
+.preview-card {
+  padding: 1.125rem 1.125rem 1.25rem;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  background: color-mix(in oklab, var(--ink) 2%, transparent);
+}
+
+.preview-label {
+  margin: 0 0 0.875rem;
+  font-size: 0.625rem;
+  font-weight: 650;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+.preview-card .entries { max-width: none; }
+.preview-card .entry-link { display: block; padding: 0; margin: 0; }
+.preview-card .name { font-size: 1rem; }
+.preview-card .blurb { font-size: 0.875rem; max-inline-size: none; }
+.preview-card .is-placeholder { opacity: 0.4; }
+
+.preview-host {
+  margin: 0.875rem 0 0;
+  font-size: 0.6875rem;
+  color: var(--ink-muted);
+  word-break: break-all;
+}
+
+.field { margin-bottom: 1.75rem; border: 0; padding: 0; min-inline-size: 0; }
+
+.field > label,
+.field > legend {
+  display: block;
+  margin-bottom: 0.5rem;
+  padding: 0;
+  font-size: 0.75rem;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.field > label .opt,
+.field > legend .opt {
+  margin-left: 0.45rem;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--ink-muted);
+  text-transform: none;
+}
+
+.field > legend .opt.is-full { color: var(--accent); font-weight: 650; }
+
+.field input,
+.field textarea {
+  inline-size: 100%;
+  font-family: inherit;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--ink);
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--rule);
+  padding: 0.35rem 0 0.5rem;
+  transition: border-color 0.18s var(--ease);
+}
+
+.field textarea {
+  resize: vertical;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: 0.6rem 0.7rem;
+}
+
+.field select {
+  inline-size: 100%;
+  font-family: inherit;
+  font-size: 0.9375rem;
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: 0.55rem 2rem 0.55rem 0.7rem;
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, currentColor 50%),
+    linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position: calc(100% - 1rem) 55%, calc(100% - 0.7rem) 55%;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+}
+
+.field input:focus,
+.field input:focus-visible { outline: none; border-bottom-color: var(--accent); }
+.field textarea:focus,
+.field textarea:focus-visible,
+.field select:focus,
+.field select:focus-visible { outline: none; border-color: var(--accent); }
+
+.hint { margin: 0.45rem 0 0; font-size: 0.75rem; line-height: 1.55; color: var(--ink-muted); }
+.hint a { color: var(--accent); }
+.hint em { font-style: italic; }
+
+.count-badge { font-variant-numeric: tabular-nums; }
+.count-badge.over { color: var(--k-dataset); font-weight: 650; }
+
+/* Kind is eight mutually exclusive options with real differences between
+   them, so it gets rows with their definitions rather than a select whose
+   options would each be a paragraph long. */
+.kinds { display: grid; gap: 1px; }
+
+.kind-opt {
+  display: grid;
+  grid-template-columns: 6px 7rem minmax(0, 1fr);
+  align-items: baseline;
+  gap: 0 0.625rem;
+  padding: 0.5rem 0.5rem 0.55rem;
+  margin-inline: -0.5rem;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: background-color 0.15s var(--ease);
+}
+
+.kind-opt:hover { background: color-mix(in oklab, var(--ink) 4%, transparent); }
+.kind-opt input { position: absolute; opacity: 0; pointer-events: none; }
+.kind-opt .dot { inline-size: 6px; block-size: 6px; border-radius: 50%; background: var(--k); translate: 0 -1px; }
+.kind-opt .kind-name { font-size: 0.875rem; font-weight: 550; color: var(--ink-soft); }
+.kind-opt .kind-note { font-family: var(--font-text); font-size: 0.875rem; color: var(--ink-muted); }
+.kind-opt:has(input:checked) { background: color-mix(in oklab, var(--k) 9%, transparent); }
+.kind-opt:has(input:checked) .kind-name { color: var(--ink); font-weight: 650; }
+.kind-opt:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+.mini-filter {
+  inline-size: 100%;
+  max-inline-size: 16rem;
+  margin-bottom: 0.875rem;
+  font-family: inherit;
+  font-size: 0.8125rem;
+  color: var(--ink);
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--rule);
+  padding: 0.3rem 0 0.4rem;
+}
+
+.mini-filter:focus, .mini-filter:focus-visible { outline: none; border-bottom-color: var(--accent); }
+
+.checks { display: flex; flex-wrap: wrap; gap: 0.375rem; }
+
+.check {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0.32rem 0.6rem;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  font-size: 0.8125rem;
+  font-weight: 450;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: border-color 0.15s var(--ease), color 0.15s var(--ease), opacity 0.15s var(--ease);
+}
+
+.check:hover { border-color: color-mix(in oklab, var(--ink) 25%, transparent); }
+.check:has(input:checked) { border-color: var(--accent); color: var(--ink); }
+.check:has(input:disabled) { opacity: 0.35; cursor: not-allowed; }
+.check input { inline-size: auto; accent-color: var(--accent); }
+.check[hidden] { display: none; }
+
+.check-group + .check-group { margin-top: 0.875rem; }
+.check-group[hidden] { display: none; }
+
+.check-group-label {
+  margin: 0 0 0.4rem;
+  font-size: 0.625rem;
+  font-weight: 650;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+.states { margin-top: 0.875rem; }
+
+.states summary, .more > summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.8125rem;
+  color: var(--accent);
+  cursor: pointer;
+  list-style: none;
+}
+
+.states summary::-webkit-details-marker,
+.more > summary::-webkit-details-marker { display: none; }
+
+.states summary::before, .more > summary::before {
+  content: '';
+  inline-size: 6px; block-size: 6px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  rotate: -45deg; translate: 0 -1px;
+  transition: rotate 0.2s var(--ease);
+}
+
+.states[open] summary::before, .more[open] > summary::before { rotate: 45deg; translate: 0 -2px; }
+.states summary:hover, .more > summary:hover { text-decoration: underline; text-underline-offset: 3px; }
+.states .checks { margin-top: 0.625rem; }
+
+.more {
+  margin-top: 2.25rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--rule);
+}
+
+.more-body { margin-top: 1.5rem; }
+
+.two-col { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: 0 1.5rem; }
+
+.step--send { padding-top: 2.25rem; }
+.actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem 1rem; }
+.actions .hint { margin: 0; }
+.cf-turnstile { margin-bottom: 1rem; }
+#missing { margin-top: 0.75rem; }
+
+@media (max-width: 56rem) {
+  .compose { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  /* Preview first on a phone: it is the thing that explains the form. */
+  .compose-preview { position: static; order: -1; padding-top: 1.75rem; }
+}
+
+/* ── Map ──────────────────────────────────────────────────────────── */
+
+.map-head {
+  max-width: 34rem;
+  padding-block: 3.5rem 2rem;
+}
+
+.map-head h1 {
+  margin: 0 0 0.875rem;
+  font-size: 1.5rem;
+  font-weight: 650;
+  letter-spacing: -0.018em;
+  color: var(--ink);
+}
+
+.map-head p {
+  margin: 0;
+  font-family: var(--font-text);
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--ink-soft);
+  text-wrap: pretty;
+}
+
+.map-head .map-note {
+  margin-top: 0.875rem;
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  line-height: 1.55;
+  color: var(--ink-muted);
+}
+
+.map-scope {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.625rem;
+  margin: 0.75rem 0 0;
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  color: var(--ink-muted);
+}
+
+.map-scope .linkish { font-size: inherit; }
+
+.map-wrap {
+  position: relative;
+  margin-bottom: 5rem;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+#map {
+  block-size: clamp(24rem, 62dvh, 40rem);
+  background: color-mix(in oklab, var(--ink) 4%, transparent);
+}
+
+.map-fallback {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--ink-muted);
+}
+
+/* Leaflet ships its own chrome; this is the minimum to stop it looking
+   like a different website bolted into the page. */
+.leaflet-container {
+  font: inherit;
+  background: transparent;
+}
+
+.leaflet-bar,
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  box-shadow: none;
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.leaflet-bar a {
+  background: var(--paper);
+  color: var(--ink-soft);
+  border-bottom-color: var(--rule);
+}
+
+.leaflet-bar a:hover { background: color-mix(in oklab, var(--ink) 5%, transparent); }
+
+.leaflet-popup-content { margin: 0.875rem 1rem; }
+.leaflet-popup-content-wrapper { padding: 0; }
+
+.leaflet-popup-content .pk,
+.leaflet-popup-content .pn,
+.leaflet-popup-content .pp,
+.leaflet-popup-content .pb,
+.leaflet-popup-content .po {
+  display: block;
+}
+
+.pin-wrap { background: none; border: 0; }
+
+.pin {
+  display: grid;
+  place-items: center;
+  inline-size: 12px;
+  block-size: 12px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px var(--paper);
+  transition: scale 0.15s var(--ease);
+}
+
+.pin--many {
+  inline-size: 20px;
+  block-size: 20px;
+  color: var(--paper);
+  font-size: 0.625rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.pin-wrap:hover .pin,
+.pin-wrap:focus-visible .pin { scale: 1.2; }
+
+.leaflet-popup-content .prow + .prow {
+  display: block;
+  margin-top: 0.875rem;
+  padding-top: 0.875rem;
+  border-top: 1px solid var(--rule);
+}
+
+.leaflet-popup-content .pk {
+  font-size: 0.625rem;
+  font-weight: 650;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  margin-bottom: 0.35rem;
+}
+
+.leaflet-popup-content .pn {
+  font-size: 0.9375rem;
+  font-weight: 650;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.leaflet-popup-content .pn:hover { text-decoration: underline; }
+
+.leaflet-popup-content .pp {
+  font-size: 0.6875rem;
+  color: var(--ink-muted);
+  margin-top: 0.15rem;
+}
+
+.leaflet-popup-content .pb {
+  font-family: var(--font-text);
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--ink-soft);
+  margin-top: 0.5rem;
+}
+
+.leaflet-popup-content .po {
+  margin-top: 0.625rem;
+  font-size: 0.75rem;
+  font-weight: 550;
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.leaflet-control-attribution {
+  background: color-mix(in oklab, var(--paper) 88%, transparent) !important;
+  color: var(--ink-muted);
+  font-size: 10px;
+}
+
+.leaflet-control-attribution a { color: var(--ink-soft); }
+
+/* ── Entry page ───────────────────────────────────────────────────── */
+
+.entry-page {
+  max-width: 44rem;
+  padding-block: 2.25rem 6rem;
+}
+
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--ink-muted);
+  text-decoration: none;
+  transition: color 0.15s var(--ease);
+}
+
+.back svg { inline-size: 9px; block-size: 9px; }
+.back:hover { color: var(--ink); }
+
+.entry-page header { padding-block: 2.5rem 0; }
+
+.entry-page .kind {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 0.875rem;
+  font-size: 0.6875rem;
+  font-weight: 650;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+.entry-page .kind .dot {
+  inline-size: 6px;
+  block-size: 6px;
+  border-radius: 50%;
+  background: var(--k);
+}
+
+.entry-page h1 {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 650;
+  letter-spacing: -0.022em;
+  line-height: 1.15;
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+.entry-page .blurb {
+  margin: 0.875rem 0 0;
+  max-width: 34rem;
+  font-family: var(--font-text);
+  font-size: 1.1875rem;
+  line-height: 1.5;
+  color: var(--ink-soft);
+  text-wrap: pretty;
+}
+
+.visit {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1.75rem;
+  padding: 0.6rem 0.9rem;
+  border: 1px solid color-mix(in oklab, var(--k) 45%, transparent);
+  border-radius: 3px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--ink);
+  text-decoration: none;
+  transition: background-color 0.18s var(--ease), border-color 0.18s var(--ease);
+}
+
+.visit svg { inline-size: 10px; block-size: 10px; color: var(--ink-muted); }
+
+.visit:hover {
+  background: color-mix(in oklab, var(--k) 9%, transparent);
+  border-color: var(--k);
+}
+
+.note {
+  margin-top: 2.5rem;
+  max-width: 34rem;
+  font-family: var(--font-text);
+  font-size: 1rem;
+  line-height: 1.65;
+  color: var(--ink-soft);
+}
+
+.note p { margin: 0 0 1rem; text-wrap: pretty; }
+.note p:last-child { margin-bottom: 0; }
+
+.note a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.panels {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 2.5rem 3rem;
+  margin-top: 3.5rem;
+  padding-top: 2.5rem;
+  border-top: 1px solid var(--rule);
+}
+
+.panels h2 {
+  margin: 0 0 0.875rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+.facts dl { margin: 0; }
+
+.facts dl > div {
+  display: grid;
+  grid-template-columns: 5.5rem minmax(0, 1fr);
+  gap: 0.75rem;
+  padding: 0.375rem 0;
+}
+
+.facts dt {
+  font-size: 0.75rem;
+  color: var(--ink-muted);
+}
+
+.facts dd {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--ink-soft);
+}
+
+.people,
+.links {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.5rem;
+  font-size: 0.8438rem;
+}
+
+.people li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem;
+  color: var(--ink-soft);
+}
+
+.people .role {
+  font-size: 0.75rem;
+  color: var(--ink-muted);
+}
+
+.people a,
+.links a {
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--rule);
+  transition: text-decoration-color 0.15s var(--ease);
+}
+
+.people a:hover,
+.links a:hover { text-decoration-color: var(--k); }
+
+.links .plain { color: var(--ink-muted); }
+
+.provenance {
+  margin-top: 3.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--rule);
+  font-size: 0.75rem;
+  color: var(--ink-muted);
+}
+
+.provenance a { color: var(--accent); }
+
+@media (max-width: 34rem) {
+  .entry-page h1 { font-size: 1.625rem; }
+  .entry-page .blurb { font-size: 1.0625rem; }
+}
+
+/* ── Footer ───────────────────────────────────────────────────────── */
+
+.foot {
+  border-top: 1px solid var(--rule);
+  padding-block: 2.75rem 3.5rem;
+  color: var(--ink-muted);
+}
+
+.foot-top {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) repeat(3, minmax(0, 1fr));
+  gap: 2rem 2.5rem;
+  align-items: start;
+}
+
+.foot-about { max-width: 22rem; }
+
+.foot-mark {
+  margin: 0 0 0.625rem;
+  font-family: var(--font-text);
+  font-size: 1rem;
+  font-weight: 560;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.foot-about p:last-child {
+  margin: 0;
+  font-family: var(--font-text);
+  font-size: 0.875rem;
+  line-height: 1.55;
+  text-wrap: pretty;
+}
+
+.foot-col h2 {
+  margin: 0 0 0.75rem;
+  font-size: 0.6563rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.foot-col ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.4375rem;
+}
+
+.foot-col a {
+  font-size: 0.8125rem;
+  color: var(--ink-muted);
+  text-decoration: none;
+  transition: color 0.15s var(--ease);
+}
+
+.foot-col a:hover { color: var(--ink); }
+
+.colophon {
+  margin: 2.5rem 0 0;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--rule);
+  font-size: 0.75rem;
+  line-height: 1.6;
+  color: var(--ink-muted);
+}
+
+.colophon a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-color: var(--rule);
+}
+
+.colophon a:hover { color: var(--ink); text-decoration-color: currentColor; }
+
+@media (max-width: 48rem) {
+  .foot-top { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .foot-about { grid-column: 1 / -1; }
+}
+
+/* ── Page-load: one orchestrated moment, then nothing ─────────────── */
+
+@media (prefers-reduced-motion: no-preference) {
+  .entry {
+    animation: rise 0.5s var(--ease) backwards;
+    animation-delay: calc(var(--i, 0) * 28ms + 60ms);
+  }
+}
+
+@keyframes rise {
+  from { opacity: 0; translate: 0 6px; }
+  to { opacity: 1; translate: 0 0; }
+}
+
+/* ── Narrow ───────────────────────────────────────────────────────── */
+
+@media (max-width: 62rem) {
+  .opening {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2.5rem 0;
+    padding-block: 3rem 2.75rem;
+  }
+
+  .statement { max-width: none; }
+  .opening-meta { margin-top: 0; }
+
+  .index {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2.5rem;
+  }
+
+  .rail {
+    position: static;
+    gap: 1.25rem;
+    max-height: none;
+    overflow: visible;
+    padding-right: 0;
+    margin-right: 0;
+  }
+
+  .index > .list {
+    border-left: 0;
+    padding-left: 0;
+    min-height: 0;
+  }
+
+  .filters-toggle { display: flex; }
+  .facet-groups { display: none; }
+  .rail[data-open] .facet-groups { display: grid; }
+
+  /* The group rules read as structure in a column; as stacked chip
+     blocks they just add horizontal lines, so they come off. */
+  .facet h2 { border-top: 0; padding-top: 0; }
+
+  .facet ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 0.5rem;
+  }
+
+  /* Bars need a column to be comparable down; as wrapped chips they would
+     just be noise, so the rail drops to plain filters on narrow screens. */
+  .facet button,
+  .facet[data-group='kind'] button {
+    display: flex;
+    align-items: center;
+    width: auto;
+    gap: 0.4rem;
+    padding: 0.3rem 0.55rem;
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+  }
+
+  /* Leaders only make sense in a column with a right edge to run to. */
+  .facet .leader { display: none; }
+
+  .facet button[aria-pressed='true'] { border-color: var(--accent); }
+  .facet .count { margin-left: 0; }
+}
+
+@media (max-width: 34rem) {
+  .statement { font-size: 1.25rem; }
+  .masthead { flex-wrap: wrap; gap: 0.9rem 1rem; }
+  .masthead nav {
+    inline-size: 100%;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+}
+
+/* Sub-headings inside the submission form's long checkbox fields — the
+   same grouping the rail uses, for the same reason. */
+.check-group + .check-group { margin-top: 0.875rem; }
+
+.check-group-label {
+  margin: 0 0 0.4rem;
+  font-size: 0.625rem;
+  font-weight: 650;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+.empty-alt {
+  display: block;
+  margin-top: 0.75rem;
+  font-family: var(--font-ui);
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: var(--ink-muted);
+}
+
+.empty-alt a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }

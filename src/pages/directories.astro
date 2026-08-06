@@ -1,0 +1,192 @@
+---
+import { getCollection, render } from 'astro:content'
+import Base from '../layouts/Base.astro'
+import { TOPICS, GEOGRAPHIES, LICENSING } from '../taxonomy'
+
+/**
+ * A showcase of the other directories worth knowing about.
+ *
+ * The data is not separate: these are ordinary `directory` entries in the
+ * index, so adding one is adding an entry and this page updates itself.
+ * What is different is the presentation — a directory deserves more room
+ * than an index row gives it, and the thing you want to know about one
+ * (what it covers, who runs it, whether you can reuse the data) does not
+ * fit on a single line.
+ */
+const dirs = (await getCollection('entries'))
+  .filter((e) => e.data.kind === 'directory' && e.data.status !== 'dead')
+  .sort((a, b) => a.data.name.localeCompare(b.data.name, 'en', { sensitivity: 'base' }))
+
+const withBody = await Promise.all(
+  dirs.map(async (e) => ({ e, Content: e.body?.trim() ? (await render(e)).Content : null })),
+)
+
+const host = (u: string) => {
+  try { return new URL(u).host.replace(/^www\./, '') } catch { return u }
+}
+
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  name: 'Other directories',
+  numberOfItems: dirs.length,
+  mainEntity: {
+    '@type': 'ItemList',
+    itemListElement: dirs.map((e, i) => ({
+      '@type': 'ListItem', position: i + 1, name: e.data.name, url: e.data.url,
+    })),
+  },
+}
+---
+
+<Base
+  title="Other directories"
+  description="Other people's directories worth knowing about — several go deeper on one subject than this index does."
+  schema={schema}
+>
+  <div class="page-head">
+    <h1>Other directories</h1>
+    <p class="statement">
+      This index is broad and shallow by design. These go deep on one
+      subject, and several of them are where <em>we found things worth
+      listing here</em>.
+    </p>
+  </div>
+
+  <section class="about-block">
+    <h2>{dirs.length === 1 ? 'One worth knowing' : `${dirs.length} worth knowing`}</h2>
+    <p class="lead">
+      A short list, deliberately. Anything that hosts its own data is filed
+      as a data source in the index instead — what is left here is the
+      directories proper, whose whole contribution is knowing where to
+      point you. Where a licence is stated we say so; it decides whether
+      you can build on their work or only link to it.
+    </p>
+
+    <ol class="dirs">
+      {withBody.map(({ e, Content }) => {
+        const d = e.data
+        return (
+          <li data-kind={d.kind}>
+            <div class="dir-head">
+              <h3><a href={d.url} rel="noopener">{d.name}</a></h3>
+              <a class="dir-host" href={d.url} rel="noopener">
+                {host(d.url)}
+                <svg viewBox="0 0 10 10" fill="none" aria-hidden="true">
+                  <path d="M1.6 8.4 8.4 1.6M3.4 1.6h5v5" stroke="currentColor"
+                    stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </a>
+            </div>
+
+            <p class="dir-blurb">{d.blurb}</p>
+
+            {Content && <div class="dir-note"><Content /></div>}
+
+            <p class="dir-meta">
+              <span class="chip chip--kind">{d.geography.map((g) => GEOGRAPHIES[g]).join(', ')}</span>
+              {d.topics.slice(0, 3).map((t) => <span class="chip">{TOPICS[t]}</span>)}
+              <span class="chip">
+                {d.license ?? (d.licensing ? LICENSING[d.licensing] : 'Licence unclear')}
+              </span>
+              <a class="chip chip--link" href={`/e/${e.id}`}>Entry &rsaquo;</a>
+            </p>
+          </li>
+        )
+      })}
+    </ol>
+  </section>
+
+  <section class="about-block about-cta">
+    <h2>Know another?</h2>
+    <div class="prose-col">
+      <p>
+        <a href="/submit">Add it</a> as an entry with kind <em>directory</em> and
+        it appears here automatically. Directories of directories are how
+        people actually find things — there is no competition in this.
+      </p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .dirs {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .dirs li {
+    padding: 1.75rem 0;
+    border-top: 1px solid var(--rule);
+  }
+
+  .dirs li:last-child { border-bottom: 1px solid var(--rule); }
+
+  .dir-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.5rem 0.875rem;
+  }
+
+  .dir-head h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 620;
+    letter-spacing: -0.014em;
+    color: var(--ink);
+  }
+
+  .dir-head h3 a { text-decoration: none; }
+  .dir-head h3 a:hover { color: var(--k); }
+
+  .dir-host {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.75rem;
+    color: var(--ink-muted);
+    text-decoration: none;
+  }
+
+  .dir-host svg { inline-size: 8px; block-size: 8px; }
+  .dir-host:hover { color: var(--ink); }
+
+  .dir-blurb {
+    margin: 0.5rem 0 0;
+    max-width: 34rem;
+    font-family: var(--font-text);
+    font-size: 1.0625rem;
+    line-height: 1.5;
+    color: var(--ink-soft);
+    text-wrap: pretty;
+  }
+
+  .dir-note {
+    max-width: 34rem;
+    margin-top: 0.625rem;
+    font-family: var(--font-text);
+    font-size: 0.9375rem;
+    line-height: 1.55;
+    color: var(--ink-muted);
+  }
+
+  .dir-note :global(p) { margin: 0 0 0.5rem; text-wrap: pretty; }
+  .dir-note :global(p:last-child) { margin-bottom: 0; }
+
+  .dir-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3125rem;
+    margin: 0.875rem 0 0;
+  }
+
+  .chip--link {
+    text-decoration: none;
+    color: var(--accent);
+    border-color: color-mix(in oklab, var(--accent) 35%, transparent);
+  }
+
+  .chip--link:hover { border-color: var(--accent); }
+</style>

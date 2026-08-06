@@ -1,0 +1,38 @@
+{
+  "name": "soochi",
+  "type": "module",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "astro dev",
+    "build": "npm run build:site && npm run build:worker",
+    "build:site": "astro build",
+    "build:worker": "wrangler pages functions build --outdir .worker --compatibility-date 2026-08-06 --compatibility-flags nodejs_compat --minify",
+    "preview": "astro preview",
+    "preview:worker": "npm run build && wrangler dev",
+    "deploy": "npm run check && npm run build && wrangler deploy",
+    "check": "astro check",
+    "unverified": "node scripts/unverified.mjs"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.115.0",
+    "@astrojs/rss": "^4.0.19",
+    "@astrojs/sitemap": "^3.7.3",
+    "@fontsource-variable/public-sans": "^5.1.1",
+    "@fontsource-variable/source-serif-4": "^5.1.1",
+    "@types/leaflet": "^1.9.22",
+    "astro": "^7.1.6",
+    "leaflet": "^1.9.4",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.10",
+    "@cloudflare/workers-types": "^5.20260804.1",
+    "tsx": "^4.23.9",
+    "typescript": "^6.0.3",
+    "wrangler": "^4.119.0"
+  },
+  "overrides": {
+    "undici": "7.29.0"
+  }
+}

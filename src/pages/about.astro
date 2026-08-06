@@ -1,0 +1,162 @@
+---
+import { getCollection } from 'astro:content'
+import Base from '../layouts/Base.astro'
+import { KINDS, KIND_NOTES, TOPICS, GEOGRAPHIES, keysOf } from '../taxonomy'
+
+const all = await getCollection('entries')
+const shown = all.filter((e) => e.data.status !== 'dead')
+
+const kinds = keysOf(KINDS).map((k) => ({
+  value: k,
+  label: KINDS[k],
+  note: KIND_NOTES[k],
+  count: shown.filter((e) => e.data.kind === k).length,
+}))
+
+const listed = [
+  'Organisations doing civic, research or advocacy work',
+  'Open datasets, and the portals that hold them',
+  'Tools you can run without buying anything',
+  'Reporting and research that shows its sources',
+  'Archives, including of things that no longer exist',
+  'Communities you can actually join and ask questions in',
+]
+
+const notListed = [
+  'Consultancies and vendors selling into the sector',
+  'Products whose free tier is really a trial',
+  'Anything primarily promotional about itself',
+  'Work you cannot reach without knowing someone',
+  'Individual reports — we list who published them, not each PDF',
+]
+
+const counts = {
+  topics: Object.keys(TOPICS).length,
+  places: Object.keys(GEOGRAPHIES).length,
+}
+---
+
+<Base
+  title="About"
+  description="What this index is, what gets listed, and how it is kept honest."
+>
+  <div class="page-head">
+    <h1>About</h1>
+    <p class="statement">
+      Good civic work is badly indexed. The organisation that already built
+      the dataset you need, the tool that would have saved you three weeks,
+      the archive holding records you assumed were lost — these exist, and
+      finding them mostly depends on <em>knowing someone who already
+      knows</em>. This is an attempt to write that knowledge down.
+    </p>
+  </div>
+
+  <section class="about-block">
+    <h2>The name</h2>
+    <div class="prose-col">
+      <p>
+        <em>Soochi</em> comes from the Kannada <a
+          href="https://alar.ink/dictionary/kannada/english/%E0%B2%B8%E0%B3%82%E0%B2%9A%E0%B2%BF"
+          lang="kn" hreflang="kn" rel="noopener">ಸೂಚಿ</a> (<i>sūci</i>): among its meanings is an index of a book's chapters or subjects.
+        That is the job here too — a small, ordered way into a much larger body of work.
+      </p>
+    </div>
+  </section>
+
+  <section class="about-block">
+    <h2>The seven kinds</h2>
+    <p class="lead">
+      Every entry is exactly one of these. The vocabulary is deliberately
+      small — an index where each entry invents its own tags is a list, not
+      an index.
+    </p>
+
+    <ul class="kind-table">
+      {kinds.map((k) => (
+        <li data-kind={k.value}>
+          <span class="dot" aria-hidden="true" />
+          <span class="k-name">{k.label}</span>
+          <span class="k-note">{k.note}</span>
+          <span class="k-count">{k.count}</span>
+        </li>
+      ))}
+    </ul>
+
+    <p class="footnote">
+      Alongside these, {counts.topics} topics and {counts.places} places, both
+      closed lists. Adding a term is a deliberate edit someone reviews, which
+      is most of what keeps the filters meaning anything.
+    </p>
+  </section>
+
+  <section class="about-block">
+    <h2>What gets listed</h2>
+    <div class="two-up">
+      <div>
+        <h3 class="col-head col-head--in">In</h3>
+        <ul class="marks marks--in">
+          {listed.map((x) => <li>{x}</li>)}
+        </ul>
+      </div>
+      <div>
+        <h3 class="col-head col-head--out">Out</h3>
+        <ul class="marks marks--out">
+          {notListed.map((x) => <li>{x}</li>)}
+        </ul>
+      </div>
+    </div>
+    <p class="footnote">
+      Paywalled work is listed when the work itself is the point, and
+      labelled as such. The bar is usefulness, not size or reputation.
+    </p>
+  </section>
+
+  <section class="about-block">
+    <h2>How it stays honest</h2>
+    <div class="two-up">
+      <div class="prose-col">
+        <p>
+          Every link is checked automatically each week. Entries that go dark
+          are marked <em>dormant</em>, then <em>dead</em>, rather than deleted
+          — what an organisation used to be is often worth knowing, and a
+          directory that quietly drops its failures is lying about its own
+          history.
+        </p>
+      </div>
+      <div class="prose-col">
+        <p>
+          Descriptions are hand-written and capped at 160 characters. Nothing
+          here is scraped. That cap is doing real work: it is the difference
+          between a page you can scan and a page of marketing copy someone
+          else wrote.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="about-block">
+    <h2>The data is the point</h2>
+    <div class="prose-col">
+      <p>
+        Every entry is a plain text file in a public Git repository,
+        validated against a schema. The whole index is available as
+        <a href="/index.json">index.json</a> under CC0 — take it, fork it,
+        build something better with it. Nothing here is locked in a database
+        that only one person can reach, and if this site disappears the
+        index itself does not.
+      </p>
+    </div>
+  </section>
+
+  <section class="about-block about-cta">
+    <h2>Who maintains it</h2>
+    <div class="prose-col">
+      <p>
+        One person, with help. The index is only as good as the number of
+        people putting things into it — if something is wrong, out of date,
+        or missing, <a href="/contribute">say so</a>. Corrections are as
+        welcome as additions, and get merged faster.
+      </p>
+    </div>
+  </section>
+</Base>

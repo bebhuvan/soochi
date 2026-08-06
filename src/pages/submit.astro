@@ -1,0 +1,447 @@
+---
+import Base from '../layouts/Base.astro'
+import {
+  KINDS, KIND_NOTES, TOPICS, TOPIC_GROUPS, GEOGRAPHIES, GEOGRAPHY_GROUPS,
+  LICENSING, ACCESS, ORG_TYPES, keysOf,
+} from '../taxonomy'
+
+const TURNSTILE_KEY = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? ''
+---
+
+<Base
+  title="Add an entry"
+  description="Paste a link and we'll draft the entry for you to check."
+>
+  <div class="page-head">
+    <h1>Add an entry</h1>
+    <p class="statement">
+      Paste a link. We read the page and draft the entry; you correct what
+      it got wrong — <em>you are the editor, it is the typist</em>.
+    </p>
+  </div>
+
+  <form id="form" novalidate>
+    {/* Step one is one field. Everything else stays out of the way until
+        there is something to review. */}
+    <section class="step" id="step-1">
+      <div class="lookup">
+        <label class="sr" for="lookup-url">Link to the thing you're adding</label>
+        <input id="lookup-url" type="url" placeholder="https://example.com"
+          autocomplete="url" spellcheck="false" enterkeyhint="go" />
+        <button type="button" id="lookup" class="btn btn--primary">Read the page</button>
+      </div>
+      <p class="hint" id="lookup-status">
+        Takes about ten seconds. Or
+        <button type="button" class="linkish" id="skip">fill it in yourself</button>.
+      </p>
+      <div id="turnstile" class="cf-turnstile" data-sitekey={TURNSTILE_KEY} data-theme="auto"></div>
+      {!TURNSTILE_KEY && (
+        <p class="hint setup-warning">Submissions are unavailable until Turnstile is configured.</p>
+      )}
+    </section>
+
+    <div class="compose" id="fields" hidden>
+      <div class="compose-fields">
+        <section class="step">
+          <h2 class="step-h">The entry</h2>
+
+          <div class="field">
+            <label for="f-name">Name</label>
+            <input id="f-name" name="name" required maxlength="70" autocomplete="off" />
+            <p class="hint">As it calls itself. No tagline.</p>
+          </div>
+
+          <div class="field">
+            <label for="f-blurb">One sentence</label>
+            <textarea id="f-blurb" name="blurb" required rows="3"></textarea>
+            <p class="hint">
+              What it <em>does</em>, as if to a colleague.
+              <span id="count" class="count-badge">0/160</span>
+            </p>
+          </div>
+
+          <fieldset class="field">
+            <legend>Kind</legend>
+            <div class="kinds">
+              {keysOf(KINDS).map((k) => (
+                <label class="kind-opt" data-kind={k}>
+                  <input type="radio" name="kind" value={k} required />
+                  <span class="dot" aria-hidden="true" />
+                  <span class="kind-name">{KINDS[k]}</span>
+                  <span class="kind-note">{KIND_NOTES[k]}</span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+
+          <fieldset class="field">
+            <legend>Topics <span class="opt" id="topic-count">choose up to four</span></legend>
+            <input id="topic-filter" class="mini-filter" type="search"
+              placeholder="Filter 31 topics…" autocomplete="off" spellcheck="false" />
+            <div id="topic-list">
+              {TOPIC_GROUPS.map((grp) => (
+                <div class="check-group" data-group-label={grp.label}>
+                  <p class="check-group-label">{grp.label}</p>
+                  <div class="checks" data-group="topics">
+                    {grp.topics.map((t) => (
+                      <label class="check"><input type="checkbox" name="topics" value={t} />{TOPICS[t]}</label>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </fieldset>
+
+          <fieldset class="field">
+            <legend>Where</legend>
+            <div class="checks" data-group="geography">
+              <label class="check"><input type="checkbox" name="geography" value="india" />India</label>
+              {keysOf(GEOGRAPHIES).filter((g) => GEOGRAPHY_GROUPS[2].test(g)).map((g) => (
+                <label class="check"><input type="checkbox" name="geography" value={g} />{GEOGRAPHIES[g]}</label>
+              ))}
+            </div>
+            <details class="states">
+              <summary>Add a state or union territory</summary>
+              <p class="hint">Sub-national work carries its state <em>and</em> India.</p>
+              <div class="checks" data-group="geography">
+                {keysOf(GEOGRAPHIES).filter((g) => g !== 'india' && GEOGRAPHY_GROUPS[1].test(g)).map((g) => (
+                  <label class="check"><input type="checkbox" name="geography" value={g} />{GEOGRAPHIES[g]}</label>
+                ))}
+              </div>
+            </details>
+          </fieldset>
+        </section>
+
+        {/* Half the form was optional and took up half the space. Now it
+            takes up one line until someone wants it. */}
+        <details class="more">
+          <summary>Add more detail — all optional</summary>
+          <div class="more-body">
+            <div class="field">
+              <label for="f-orgType">Who runs it</label>
+              <select id="f-orgType" name="orgType">
+                <option value="">Not sure</option>
+                {keysOf(ORG_TYPES).map((k) => <option value={k}>{ORG_TYPES[k]}</option>)}
+              </select>
+            </div>
+
+            <div class="two-col">
+              <div class="field">
+                <label for="f-licensing">Licence</label>
+                <select id="f-licensing" name="licensing">
+                  <option value="">Not sure</option>
+                  {keysOf(LICENSING).map((l) => <option value={l}>{LICENSING[l]}</option>)}
+                </select>
+              </div>
+              <div class="field">
+                <label for="f-access">Cost</label>
+                <select id="f-access" name="access">
+                  <option value="">Not sure</option>
+                  {keysOf(ACCESS).map((a) => <option value={a}>{ACCESS[a]}</option>)}
+                </select>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="f-note">Anything else</label>
+              <textarea id="f-note" name="note" rows="3" maxlength="1200"
+                placeholder="Why it's worth knowing about, or a caveat. Shows on the entry's own page."></textarea>
+            </div>
+
+            <div class="field">
+              <label for="f-by">Credit</label>
+              <input id="f-by" name="submittedBy" maxlength="60"
+                placeholder="How you want to be credited" autocomplete="off" />
+            </div>
+          </div>
+        </details>
+
+        <section class="step step--send">
+          <div class="actions">
+            <button type="submit" class="btn btn--primary" id="send" disabled>Submit for review</button>
+            <p class="hint" id="status" role="status"></p>
+          </div>
+          <p class="hint" id="missing"></p>
+        </section>
+      </div>
+
+      {/* You are contributing an entry, so you should see the entry. This
+          is the same markup the index uses, which also makes the
+          160-character cap obvious instead of abstract. */}
+      <aside class="compose-preview">
+        <div class="preview-card">
+          <p class="preview-label">How it will look</p>
+          <ul class="entries" aria-live="polite">
+            <li class="entry" id="pv" data-kind="">
+              <span class="entry-link">
+                <span class="head"><span class="name" id="pv-name">Untitled</span></span>
+                <p class="blurb" id="pv-blurb">Your one sentence goes here.</p>
+                <p class="facets" id="pv-facets">
+                  <span class="chip chip--kind">Kind</span>
+                </p>
+              </span>
+            </li>
+          </ul>
+          <p class="preview-host" id="pv-host"></p>
+        </div>
+      </aside>
+    </div>
+  </form>
+
+  {/*
+    No SRI hash: Turnstile's api.js is a versionless endpoint Cloudflare
+    updates in place and publishes no hash for. The CSP pins the origin,
+    which is the control that applies to a moving target.
+  */}
+  {TURNSTILE_KEY && (
+    <script is:inline async defer src="https://challenges.cloudflare.com/turnstile/v0/api.js"></script>
+  )}
+</Base>
+
+<script>
+  import { KINDS, TOPICS, GEOGRAPHIES } from '../taxonomy'
+
+  const $ = <T extends HTMLElement>(s: string) => document.querySelector(s) as T
+  const all = <T extends HTMLElement>(s: string) => [...document.querySelectorAll<T>(s)]
+
+  const form = $('#form') as unknown as HTMLFormElement
+  const fields = $('#fields')
+  const lookupBtn = $<HTMLButtonElement>('#lookup')
+  const lookupUrl = $<HTMLInputElement>('#lookup-url')
+  const lookupStatus = $('#lookup-status')
+  const status = $('#status')
+  const missing = $('#missing')
+  const send = $<HTMLButtonElement>('#send')
+  const blurb = $<HTMLTextAreaElement>('#f-blurb')
+  const count = $('#count')
+  const topicCount = $('#topic-count')
+
+  const MAX_TOPICS = 4
+  const turnstileToken = () =>
+    (document.querySelector('[name="cf-turnstile-response"]') as HTMLInputElement | null)?.value
+
+  const checked = (name: string) =>
+    all<HTMLInputElement>(`input[name="${name}"]:checked`).map((el) => el.value)
+
+  /* ── Live preview ─────────────────────────────────────────────────── */
+
+  function paint() {
+    const name = $<HTMLInputElement>('#f-name').value.trim()
+    const text = blurb.value.trim()
+    const kind = (form.elements.namedItem('kind') as RadioNodeList | null)?.value ?? ''
+    const topics = checked('topics')
+    const geo = checked('geography')
+
+    $('#pv').dataset.kind = kind
+    $('#pv-name').textContent = name || 'Untitled'
+    $('#pv-name').classList.toggle('is-placeholder', !name)
+    $('#pv-blurb').textContent = text || 'Your one sentence goes here.'
+    $('#pv-blurb').classList.toggle('is-placeholder', !text)
+
+    const chips: string[] = []
+    if (kind) chips.push(`<span class="chip chip--kind">${KINDS[kind as keyof typeof KINDS]}</span>`)
+    if (topics[0]) chips.push(`<span class="chip">${TOPICS[topics[0] as keyof typeof TOPICS]}</span>`)
+    if (geo.length) {
+      chips.push(`<span class="chip">${geo.map((g) => GEOGRAPHIES[g as keyof typeof GEOGRAPHIES]).join(', ')}</span>`)
+    }
+    $('#pv-facets').innerHTML = chips.join('') || '<span class="chip is-placeholder">Kind</span>'
+
+    try {
+      const u = $<HTMLInputElement>('#lookup-url').value.trim()
+      $('#pv-host').textContent = u ? new URL(u).host.replace(/^www\./, '') : ''
+    } catch { $('#pv-host').textContent = '' }
+
+    validate(name, text, kind, topics, geo)
+  }
+
+  /* ── Gate the button, and say what is missing ─────────────────────── */
+
+  function validate(name: string, text: string, kind: string, topics: string[], geo: string[]) {
+    const gaps: string[] = []
+    if (!name) gaps.push('a name')
+    if (text.length < 20) gaps.push('a sentence of at least 20 characters')
+    else if (text.length > 160) gaps.push(`${text.length - 160} fewer characters in the sentence`)
+    if (!kind) gaps.push('a kind')
+    if (!topics.length) gaps.push('at least one topic')
+    if (!geo.length) gaps.push('at least one place')
+
+    send.disabled = gaps.length > 0
+    missing.textContent = gaps.length
+      ? `Still needs ${gaps.length > 1 ? gaps.slice(0, -1).join(', ') + ' and ' + gaps.at(-1) : gaps[0]}.`
+      : ''
+  }
+
+  const setCount = () => {
+    const n = blurb.value.trim().length
+    const over = n > 160
+    count.textContent = over ? `${n}/160 — ${n - 160} too many` : `${n}/160`
+    count.classList.toggle('over', over)
+  }
+
+  /* ── Topic cap ────────────────────────────────────────────────────── */
+
+  function enforceTopicCap() {
+    const boxes = all<HTMLInputElement>('input[name="topics"]')
+    const n = boxes.filter((b) => b.checked).length
+    for (const b of boxes) b.disabled = !b.checked && n >= MAX_TOPICS
+    topicCount.textContent = n === 0 ? 'choose up to four' : `${n} of ${MAX_TOPICS}`
+    topicCount.classList.toggle('is-full', n >= MAX_TOPICS)
+  }
+
+  /* ── Filter the thirty-one topics ─────────────────────────────────── */
+
+  $<HTMLInputElement>('#topic-filter').addEventListener('input', (ev) => {
+    const q = (ev.target as HTMLInputElement).value.trim().toLowerCase()
+    for (const grp of all('#topic-list .check-group')) {
+      let shown = 0
+      for (const label of grp.querySelectorAll<HTMLLabelElement>('.check')) {
+        const hit = !q || (label.textContent ?? '').toLowerCase().includes(q)
+        label.hidden = !hit
+        if (hit) shown++
+      }
+      ;(grp as HTMLElement).hidden = shown === 0
+    }
+  })
+
+  form.addEventListener('input', () => { setCount(); paint() })
+  form.addEventListener('change', () => { enforceTopicCap(); paint() })
+
+  /* ── Reveal ───────────────────────────────────────────────────────── */
+
+  const reveal = () => {
+    fields.hidden = false
+    paint()
+    $('#f-name').focus({ preventScroll: true })
+    fields.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+  $('#skip').addEventListener('click', reveal)
+  lookupUrl.addEventListener('keydown', (e) => {
+    if ((e as KeyboardEvent).key === 'Enter') { e.preventDefault(); lookupBtn.click() }
+  })
+
+  /* ── Draft from a URL ─────────────────────────────────────────────── */
+
+  lookupBtn.addEventListener('click', async () => {
+    const url = lookupUrl.value.trim()
+    if (!url) { lookupUrl.focus(); return }
+
+    lookupBtn.disabled = true
+    lookupStatus.textContent = 'Reading the page…'
+
+    try {
+      const res = await fetch('/api/enrich', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ url, token: turnstileToken() }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? 'Lookup failed.')
+
+      const d = data.draft
+      $<HTMLInputElement>('#f-name').value = d.name ?? ''
+      blurb.value = d.blurb ?? ''
+      if (d.kind) {
+        const r = document.querySelector<HTMLInputElement>(`input[name="kind"][value="${d.kind}"]`)
+        if (r) r.checked = true
+      }
+      $<HTMLSelectElement>('#f-orgType').value =
+        d.orgType && d.orgType !== 'unknown' ? d.orgType : ''
+      $<HTMLSelectElement>('#f-licensing').value = d.licensing ?? ''
+      $<HTMLSelectElement>('#f-access').value = d.access ?? ''
+      for (const [group, vals] of [['topics', (d.topics ?? []).slice(0, MAX_TOPICS)], ['geography', d.geography ?? []]] as const) {
+        for (const el of all<HTMLInputElement>(`input[name="${group}"]`)) el.checked = vals.includes(el.value)
+      }
+
+      enforceTopicCap(); setCount(); reveal()
+
+      const shaky = (d.uncertain ?? []).join(', ')
+      const strong = document.createElement('strong')
+      strong.textContent = 'Draft filled in — check every field.'
+      lookupStatus.replaceChildren(
+        strong,
+        document.createTextNode(
+          ` Confidence: ${d.confidence ?? 'unknown'}.` +
+          (shaky ? ` Least sure about: ${shaky}.` : '') +
+          (data.sources?.length ? ` Read ${data.sources.length} source(s).` : ''),
+        ),
+      )
+    } catch (err) {
+      lookupStatus.textContent = `${(err as Error).message} You can still fill it in yourself.`
+      reveal()
+    } finally {
+      lookupBtn.disabled = false
+      ;(window as unknown as { turnstile?: { reset: () => void } }).turnstile?.reset()
+    }
+  })
+
+  /* ── Submit ───────────────────────────────────────────────────────── */
+
+  form.addEventListener('submit', async (ev) => {
+    ev.preventDefault()
+    send.disabled = true
+    status.textContent = 'Filing…'
+
+    const fd = new FormData(form)
+    const payload: Record<string, unknown> = {
+      name: (fd.get('name') as string)?.trim(),
+      url: lookupUrl.value.trim(),
+      blurb: (fd.get('blurb') as string)?.trim().replace(/\.$/, ''),
+      kind: fd.get('kind'),
+      topics: fd.getAll('topics'),
+      geography: fd.getAll('geography'),
+      token: turnstileToken(),
+    }
+    for (const k of ['orgType', 'licensing', 'access', 'submittedBy', 'note'] as const) {
+      const v = (fd.get(k) as string)?.trim()
+      if (v) payload[k] = v
+    }
+
+    try {
+      const res = await fetch('/api/submit', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+      const data = await res.json()
+
+      if (res.status === 409) {
+        const link = document.createElement('a')
+        link.href = data.existing
+        link.textContent = 'See the entry'
+        status.replaceChildren(document.createTextNode(`${data.error} `), link, document.createTextNode('.'))
+        send.disabled = false
+        return
+      }
+      if (!res.ok) {
+        status.textContent = data.fields?.length
+          ? data.fields.map((f: { field: string; message: string }) => `${f.field}: ${f.message}`).join(' · ')
+          : (data.error ?? 'Something went wrong.')
+        send.disabled = false
+        return
+      }
+
+      const section = document.createElement('section')
+      section.className = 'step'
+      const heading = document.createElement('h2')
+      heading.className = 'step-h'
+      heading.textContent = 'Filed'
+      const body = document.createElement('div')
+      body.className = 'prose-col'
+      const message = document.createElement('p')
+      const link = document.createElement('a')
+      link.href = data.pr
+      link.textContent = `pull request #${data.number}`
+      message.append('Thank you — that\'s ', link, '. A maintainer reads it before it goes live; you can follow it at that link.')
+      body.append(message)
+      section.append(heading, body)
+      form.replaceChildren(section)
+    } catch {
+      status.textContent = 'Network error. Try again in a moment.'
+      send.disabled = false
+    } finally {
+      ;(window as unknown as { turnstile?: { reset: () => void } }).turnstile?.reset()
+    }
+  })
+
+  enforceTopicCap()
+</script>

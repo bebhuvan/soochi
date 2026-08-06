@@ -1,0 +1,280 @@
+---
+import Base from '../layouts/Base.astro'
+import { KINDS, KIND_NOTES, TOPICS, TOPIC_GROUPS, GEOGRAPHIES, keysOf } from '../taxonomy'
+
+const REPO = 'https://github.com/bebhuvan/soochi'
+const CORRECT = `${REPO}/issues/new?template=correction.yml`
+
+const routes = [
+  {
+    n: '1',
+    title: 'Paste a link',
+    effort: 'Under a minute',
+    href: '/submit',
+    cta: 'Add an entry',
+    body: 'No account, no Git, no GitHub. Paste the URL and the form reads the page and fills itself in; you correct what it got wrong and submit. A maintainer reviews it before anything is published.',
+  },
+  {
+    n: '2',
+    title: 'Report a problem',
+    effort: 'Thirty seconds',
+    href: CORRECT,
+    cta: 'File a correction',
+    body: 'Dead links, renamed organisations, descriptions that were never quite right. These get merged fastest, and they are worth as much as new entries — an index nobody corrects goes stale quietly.',
+  },
+  {
+    n: '3',
+    title: 'Open a pull request',
+    effort: 'If you know Git',
+    href: `${REPO}/tree/main/src/content/entries`,
+    cta: 'Browse the entries',
+    body: 'Add a file to src/content/entries/. The schema is enforced at build time, so anything that would break the site fails in CI before a human looks at it.',
+  },
+]
+
+const good = [
+  'A link straight to the thing, not to a press release about it',
+  'One sentence saying what it is, written as if to a colleague',
+  'Tags from the lists below — not new ones',
+]
+
+const bad = [
+  'Marketing copy lifted from the homepage',
+  'A description that names the thing again instead of saying what it does',
+  'Five topics when two would do',
+]
+---
+
+<Base
+  title="Contribute"
+  description="Suggest an entry, file a correction, or open a pull request."
+>
+  <div class="page-head">
+    <h1>Contribute</h1>
+    <p class="statement">
+      The index is only as good as the number of people putting things into
+      it. Three ways in — <em>none of them require knowing how this site is
+      built</em>.
+    </p>
+  </div>
+
+  <section class="about-block">
+    <h2>Three routes</h2>
+    <ol class="routes">
+      {routes.map((r) => (
+        <li>
+          <span class="r-n" aria-hidden="true">{r.n}</span>
+          <div class="r-body">
+            <h3>{r.title} <span class="r-effort">{r.effort}</span></h3>
+            <p>{r.body}</p>
+            <a class="r-cta" href={r.href}>
+              {r.cta}
+              <svg viewBox="0 0 10 10" fill="none" aria-hidden="true">
+                <path d="M1.6 8.4 8.4 1.6M3.4 1.6h5v5" stroke="currentColor"
+                  stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            </a>
+          </div>
+        </li>
+      ))}
+    </ol>
+  </section>
+
+  <section class="about-block">
+    <h2>What makes a suggestion easy to accept</h2>
+    <div class="two-up">
+      <div>
+        <h3 class="col-head col-head--in">Do</h3>
+        <ul class="marks marks--in">{good.map((x) => <li>{x}</li>)}</ul>
+      </div>
+      <div>
+        <h3 class="col-head col-head--out">Avoid</h3>
+        <ul class="marks marks--out">{bad.map((x) => <li>{x}</li>)}</ul>
+      </div>
+    </div>
+    <p class="footnote">
+      Descriptions are capped at 160 characters. That cap is the single rule
+      doing the most work here — it is the difference between a page you can
+      scan and a page of copy somebody else wrote.
+    </p>
+  </section>
+
+  <section class="about-block">
+    <h2>The vocabulary</h2>
+    <p class="lead">
+      Pick one kind, one to four topics, and at least one place. These are
+      closed lists — if nothing fits, say so in the form rather than
+      inventing a term.
+    </p>
+
+    <ul class="kind-table">
+      {keysOf(KINDS).map((k) => (
+        <li data-kind={k}>
+          <span class="dot" aria-hidden="true" />
+          <span class="k-name">{KINDS[k]}</span>
+          <span class="k-note">{KIND_NOTES[k]}</span>
+        </li>
+      ))}
+    </ul>
+
+    <div class="vocab">
+      <div>
+        <h3 class="col-head col-head--out">Topics</h3>
+        {TOPIC_GROUPS.map((grp) => (
+          <p class="terms"><b>{grp.label}</b> — {grp.topics.map((t) => TOPICS[t]).join(' · ')}</p>
+        ))}
+      </div>
+      <div>
+        <h3 class="col-head col-head--out">Places</h3>
+        <p class="terms">
+          <b>India</b> — the country as a whole, plus any of the 28 states and
+          8 union territories. Sub-national work carries its state and India.
+        </p>
+        <p class="terms">
+          <b>Elsewhere</b> — {['global','asia','africa','europe','north-america','south-america','oceania'].map((g) => GEOGRAPHIES[g as keyof typeof GEOGRAPHIES]).join(' · ')}
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="about-block">
+    <h2>By hand</h2>
+    <div class="prose-col">
+      <p>
+        An entry is a Markdown file. Everything after the frontmatter is an
+        optional note that shows on the entry's own page.
+      </p>
+    </div>
+    <pre><code>{`---
+name: Open Budgets India
+url: https://openbudgetsindia.org
+blurb: Union, state and municipal budgets as machine-readable data
+kind: dataset
+topics: [governance, economy]
+geography: [india]
+licensing: open
+access: free
+added: 2026-08-06
+---`}</code></pre>
+    <p class="footnote">
+      Optional fields — people, contact, links, languages, funding,
+      location — are listed in <code>src/content.config.ts</code>. Fill in
+      what you know and leave the rest out.
+    </p>
+  </section>
+
+  <section class="about-block about-cta">
+    <h2>Twenty at once</h2>
+    <div class="prose-col">
+      <p>
+        If you have a list rather than a single entry, <a href={`${REPO}/discussions`}>open a
+        discussion</a> describing what you have instead of filing twenty
+        forms. A shared spreadsheet is fine.
+      </p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .routes {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0;
+  }
+
+  .routes li {
+    display: grid;
+    grid-template-columns: 2rem minmax(0, 1fr);
+    gap: 0 1rem;
+    padding: 1.5rem 0;
+    border-top: 1px solid var(--rule);
+  }
+
+  .routes li:last-child { border-bottom: 1px solid var(--rule); }
+
+  /* Numbered because these genuinely are ordered by effort — least first.
+     If they were merely three options they would not be numbered. */
+  .r-n {
+    font-size: 0.8125rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink-muted);
+    padding-top: 0.15rem;
+  }
+
+  .r-body h3 {
+    margin: 0 0 0.5rem;
+    font-size: 1rem;
+    font-weight: 620;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+
+  .r-effort {
+    margin-left: 0.5rem;
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+  }
+
+  .r-body p {
+    margin: 0 0 0.875rem;
+    max-width: 32rem;
+    font-family: var(--font-text);
+    font-size: 0.9688rem;
+    line-height: 1.55;
+    color: var(--ink-soft);
+    text-wrap: pretty;
+  }
+
+  .r-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--accent);
+    text-decoration: none;
+  }
+
+  .r-cta svg { inline-size: 9px; block-size: 9px; }
+  .r-cta:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+  .vocab {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+    gap: 1.75rem 3rem;
+    margin-top: 2rem;
+  }
+
+  .terms {
+    margin: 0;
+    font-size: 0.8125rem;
+    line-height: 1.8;
+    color: var(--ink-muted);
+  }
+
+  pre {
+    margin: 0;
+    padding: 1rem 1.125rem;
+    overflow-x: auto;
+    background: color-mix(in oklab, var(--ink) 4%, transparent);
+    border-radius: 3px;
+    font-size: 0.8125rem;
+    line-height: 1.6;
+  }
+
+  pre code { background: none; padding: 0; font-size: inherit; }
+
+  code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.875em;
+    background: color-mix(in oklab, var(--ink) 6%, transparent);
+    padding: 0.1em 0.3em;
+    border-radius: 2px;
+  }
+</style>

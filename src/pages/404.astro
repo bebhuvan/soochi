@@ -1,0 +1,76 @@
+---
+import { getCollection } from 'astro:content'
+import Base from '../layouts/Base.astro'
+import { KINDS } from '../taxonomy'
+
+// An entry that dies keeps its file and its URL, so the most likely
+// reason someone is here is a link to something that never existed —
+// or a slug that changed. Offer the newest entries rather than a shrug.
+const recent = (await getCollection('entries'))
+  .filter((e) => e.data.status !== 'dead')
+  .sort((a, b) => b.data.added.getTime() - a.data.added.getTime())
+  .slice(0, 5)
+---
+
+<Base title="Not found" noindex description="That page does not exist.">
+  <div class="page-head">
+    <h1>404</h1>
+    <p class="statement">
+      That page does not exist. If you followed a link from somewhere else,
+      it was probably pointing at an entry that has since been renamed —
+      <em>the index itself is still here</em>.
+    </p>
+  </div>
+
+  <section class="about-block">
+    <h2>Try one of these</h2>
+    <ul class="marks marks--in">
+      <li><a href="/">The full index</a> — everything, filterable</li>
+      <li><a href="/map">The map</a> — by where organisations are based</li>
+      <li><a href="/contribute">Contribute</a> — if the thing you wanted is missing</li>
+    </ul>
+  </section>
+
+  <section class="about-block about-cta">
+    <h2>Recently added</h2>
+    <ul class="kind-table">
+      {recent.map((e) => (
+        <li data-kind={e.data.kind}>
+          <span class="dot" aria-hidden="true" />
+          <span class="k-name"><a href={`/e/${e.id}`}>{e.data.name}</a></span>
+          <span class="k-note">{e.data.blurb}</span>
+          <span class="k-count">{KINDS[e.data.kind]}</span>
+        </li>
+      ))}
+    </ul>
+  </section>
+</Base>
+
+<style>
+  .k-name a {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-color: var(--rule);
+  }
+  .k-name a:hover { text-decoration-color: var(--k); }
+  /* The shared .kind-table sizes its last column for a numeral; here it
+     holds a word, so the track has to size to content. */
+  .kind-table li {
+    grid-template-columns: 6px 11rem minmax(0, 1fr) auto;
+  }
+
+  .k-count {
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    white-space: nowrap;
+  }
+
+  @media (max-width: 40rem) {
+    .kind-table li { grid-template-columns: 6px minmax(0, 1fr) auto; }
+  }
+  .marks--in a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
+</style>

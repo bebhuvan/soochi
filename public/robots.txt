@@ -1,0 +1,11 @@
+# Everything here is public and CC0. Crawl it.
+User-agent: *
+Allow: /
+
+# The whole index in one file — cheaper for you than crawling every page,
+# and it is the canonical form of this data:
+#   https://soochi.fyi/index.json   full dataset, CC0
+#   https://soochi.fyi/llms.txt     a map of the site and its vocabulary
+#   https://soochi.fyi/rss.xml      the 50 most recently added entries
+
+Sitemap: https://soochi.fyi/sitemap-index.xml

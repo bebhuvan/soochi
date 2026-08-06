@@ -1,0 +1,44 @@
+This repository is dual-licensed, because the data and the code want
+different things.
+
+────────────────────────────────────────────────────────────────────────
+THE DATA — everything under src/content/entries/ and the generated
+/index.json — is dedicated to the public domain under CC0 1.0.
+
+    https://creativecommons.org/publicdomain/zero/1.0/
+
+To the extent possible under law, the contributors have waived all
+copyright and related or neighbouring rights to this data. You may copy,
+modify, distribute and use it, including for commercial purposes, all
+without asking permission or giving credit.
+
+Attribution is not required. It is, however, appreciated — and telling us
+what you built is the best way to make the index better.
+
+────────────────────────────────────────────────────────────────────────
+THE CODE — everything else — is MIT licensed.
+
+Copyright (c) 2026 the Soochi contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the "Software"),
+to deal in the Software without restriction, including without limitation
+the rights to use, copy, modify, merge, publish, distribute, sublicense,
+and/or sell copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+DEALINGS IN THE SOFTWARE.
+
+────────────────────────────────────────────────────────────────────────
+NOT COVERED: the linked resources themselves. Each organisation, dataset
+and tool in this index carries its own licence, recorded in the entry
+where it is known. Nothing here relicenses anyone else's work.

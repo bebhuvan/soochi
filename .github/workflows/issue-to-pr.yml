@@ -1,0 +1,79 @@
+name: Entry suggestion → pull request
+
+on:
+  issues:
+    types: [opened, labeled]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  draft:
+    if: contains(github.event.issue.labels.*.name, 'new-entry')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Write the issue body to a file
+        env:
+          BODY: ${{ github.event.issue.body }}
+        run: printf '%s' "$BODY" > /tmp/issue.md
+
+      - name: Convert the issue into an entry
+        id: convert
+        run: |
+          if out=$(npx tsx scripts/issue-to-entry.mjs /tmp/issue.md src/content/entries); then
+            echo "file=$out" >> "$GITHUB_OUTPUT"
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          else
+            {
+              echo 'problems<<EOF'
+              echo "$out" | sed 's/^ERROR: /- /'
+              echo EOF
+            } >> "$GITHUB_OUTPUT"
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Explain what needs fixing
+        if: steps.convert.outputs.ok == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PROBLEMS: ${{ steps.convert.outputs.problems }}
+          NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh issue comment "$NUMBER" --body "Thanks for this. A couple of things need fixing before it can go in:
+
+          $PROBLEMS
+
+          Edit the issue above and I'll try again."
+
+      # The schema is the real gate — if the generated file fails validation
+      # the build fails here and no pull request is opened.
+      - name: Validate against the schema
+        if: steps.convert.outputs.ok == 'true'
+        run: npm ci && npx astro build
+
+      - name: Open the pull request
+        if: steps.convert.outputs.ok == 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: entry/issue-${{ github.event.issue.number }}
+          base: main
+          commit-message: 'Add ${{ github.event.issue.title }}'
+          title: '${{ github.event.issue.title }}'
+          body: |
+            Generated from #${{ github.event.issue.number }}.
+
+            Before merging, check that the link resolves, the sentence reads
+            like the others, and the tags are the ones you'd have chosen.
+
+            Closes #${{ github.event.issue.number }}
+          labels: new-entry
+          add-paths: src/content/entries/*

@@ -1,0 +1,31 @@
+name: Report a problem
+description: A dead link, a renamed organisation, a description that isn't right.
+title: 'Fix: '
+labels: [correction]
+body:
+  - type: input
+    id: entry
+    attributes:
+      label: Which entry
+      placeholder: Open Budgets India
+    validations: { required: true }
+
+  - type: dropdown
+    id: problem
+    attributes:
+      label: What's wrong
+      options:
+        - The link is dead
+        - The link has moved
+        - The description is inaccurate
+        - The tags are wrong
+        - The organisation has shut down
+        - Something else
+    validations: { required: true }
+
+  - type: textarea
+    id: detail
+    attributes:
+      label: Detail
+      description: What it should say instead, if you know.
+    validations: { required: true }

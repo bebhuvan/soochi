@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Suggest many entries at once
+    url: https://github.com/bebhuvan/soochi/discussions
+    about: If you have twenty entries rather than one, start a discussion instead.

@@ -1,0 +1,129 @@
+name: Suggest an entry
+description: Add an organisation, dataset, tool, publication, archive or community to the index.
+title: 'Entry: '
+labels: [new-entry]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for adding something. This form becomes a proposed change
+        automatically — you don't need to know Git.
+
+  - type: input
+    id: name
+    attributes:
+      label: Name
+      description: As the thing calls itself. No tagline.
+      placeholder: Open Budgets India
+    validations: { required: true }
+
+  - type: input
+    id: url
+    attributes:
+      label: Link
+      description: Straight to the thing, not to a press release about it.
+      placeholder: https://openbudgetsindia.org
+    validations: { required: true }
+
+  - type: textarea
+    id: blurb
+    attributes:
+      label: One sentence
+      description: >
+        What is it, written as if to a colleague. Under 160 characters. No
+        full stop at the end, no "A platform that…" preamble.
+      placeholder: Union, state and municipal budgets converted from PDFs into machine-readable data
+    validations: { required: true }
+
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Kind
+      options:
+        - organisation
+        - dataset
+        - directory
+        - tool
+        - publication
+        - dashboard
+        - archive
+        - community
+    validations: { required: true }
+
+  - type: dropdown
+    id: orgType
+    attributes:
+      label: Who runs it
+      options:
+        - nonprofit
+        - government
+        - academic
+        - multilateral
+        - commercial
+        - individual
+        - collective
+        - not sure
+
+  - type: textarea
+    id: topics
+    attributes:
+      label: Topics
+      description: >
+        One to four, comma separated. Use a term from the vocabulary on
+        soochi.fyi/contribute.
+      placeholder: governance, economy
+    validations: { required: true }
+
+  - type: textarea
+    id: geography
+    attributes:
+      label: Where
+      description: >
+        Comma separated. Use india, a state or union-territory slug, or one
+        of global, asia, africa, europe, north-america, south-america and
+        oceania. Sub-national entries should also include india.
+      placeholder: india
+    validations: { required: true }
+
+  - type: dropdown
+    id: licensing
+    attributes:
+      label: Licence
+      options:
+        - not sure
+        - open
+        - partly-open
+        - proprietary
+        - unknown
+
+  - type: dropdown
+    id: access
+    attributes:
+      label: Cost
+      options:
+        - not sure
+        - free
+        - registration
+        - paid
+
+  - type: input
+    id: alternateNames
+    attributes:
+      label: Also known as
+      description: Acronyms or former names, comma separated. Searched but never shown.
+      placeholder: OBI
+
+  - type: input
+    id: submittedBy
+    attributes:
+      label: Credit
+      description: How you want to be credited on the entry. Leave blank for none.
+      placeholder: '@yourhandle'
+
+  - type: textarea
+    id: note
+    attributes:
+      label: Anything else
+      description: >
+        Optional. Why it's worth knowing about, caveats, or a note to the
+        maintainer. Becomes the body of the entry if it's about the thing.

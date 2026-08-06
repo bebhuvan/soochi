@@ -1,0 +1,6 @@
+# Copy to .dev.vars for local Worker development. Never commit real values.
+ANTHROPIC_API_KEY=""
+GITHUB_TOKEN=""
+GITHUB_REPO="bebhuvan/soochi"
+GITHUB_BASE_BRANCH="main"
+TURNSTILE_SECRET=""

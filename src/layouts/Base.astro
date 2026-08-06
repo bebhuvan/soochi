@@ -1,0 +1,240 @@
+---
+import '../styles/global.css'
+
+// Imported for their built URLs so the two faces used above the fold can
+// be preloaded. Without this the first paint is unstyled text that
+// reflows once the fonts land.
+import uiFont from '@fontsource-variable/public-sans/files/public-sans-latin-wght-normal.woff2?url'
+import textFont from '@fontsource-variable/source-serif-4/files/source-serif-4-latin-wght-normal.woff2?url'
+
+interface Props {
+  title?: string
+  description?: string
+  /** JSON-LD for this page, if it has something specific to say. */
+  schema?: Record<string, unknown> | Record<string, unknown>[]
+  /** Set on pages that should not be indexed. */
+  noindex?: boolean
+}
+
+const {
+  title,
+  description = 'An index of civic organisations, open datasets, tools and archives — built to help you find the ones you did not know existed.',
+  schema,
+  noindex = false,
+} = Astro.props
+
+const SITE = 'Soochi'
+const fullTitle = title ? `${title} — ${SITE}` : `${SITE} — civic data, organisations and tools`
+const canonical = new URL(Astro.url.pathname, Astro.site)
+const ogImage = new URL('/og.png', Astro.site)
+
+const baseSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: SITE,
+  url: Astro.site?.toString(),
+  description,
+  license: 'https://creativecommons.org/publicdomain/zero/1.0/',
+  potentialAction: {
+    '@type': 'SearchAction',
+    target: { '@type': 'EntryPoint', urlTemplate: `${Astro.site}?q={search_term_string}` },
+    'query-input': 'required name=search_term_string',
+  },
+}
+
+const jsonLd = schema ? [baseSchema, ...(Array.isArray(schema) ? schema : [schema])] : [baseSchema]
+
+const here = Astro.url.pathname.replace(/\/$/, '') || '/'
+
+/* `also` folds leaf pages into their section, so /submit still lights up
+   Contribute — otherwise the page people arrive on from outside is the
+   one page with no orientation. */
+const NAV = [
+  { href: '/map', label: 'Map', also: [] as string[] },
+  { href: '/directories', label: 'Directories', also: [] as string[] },
+  { href: '/about', label: 'About', also: [] as string[] },
+  { href: '/contribute', label: 'Contribute', also: ['/submit'] },
+]
+
+const inSection = (item: (typeof NAV)[number]) =>
+  here === item.href || here.startsWith(`${item.href}/`) || item.also.includes(here)
+
+const FOOTER = [
+  {
+    heading: 'Browse',
+    links: [
+      { href: '/', label: 'The index' },
+      { href: '/map', label: 'Map' },
+      { href: '/directories', label: 'Other directories' },
+      { href: '/about', label: 'About' },
+    ],
+  },
+  {
+    heading: 'Contribute',
+    links: [
+      { href: '/submit', label: 'Add an entry' },
+      { href: '/contribute', label: 'How it works' },
+      { href: 'https://github.com/bebhuvan/soochi/issues', label: 'Report a problem' },
+    ],
+  },
+  {
+    heading: 'Data',
+    links: [
+      { href: '/index.json', label: 'index.json' },
+      { href: '/rss.xml', label: 'RSS' },
+      { href: '/llms.txt', label: 'llms.txt' },
+      { href: 'https://github.com/bebhuvan/soochi', label: 'Source' },
+    ],
+  },
+]
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex,follow" />}
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <link
+      rel="alternate"
+      type="application/json"
+      href="/index.json"
+      title="Machine-readable index"
+    />
+    <link rel="alternate" type="application/rss+xml" href="/rss.xml" title="Soochi — new entries" />
+
+    <link rel="preload" href={uiFont} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={textFont} as="font" type="font/woff2" crossorigin />
+
+    <meta property="og:site_name" content={SITE} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+
+    <meta name="theme-color" content="#fafaf9" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#101116" media="(prefers-color-scheme: dark)" />
+
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} is:inline />
+
+    <script is:inline>
+      // Runs before paint so the stored theme never flashes.
+      try {
+        var t = localStorage.getItem('theme')
+        if (t) document.documentElement.dataset.theme = t
+      } catch (e) {}
+    </script>
+  </head>
+
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+
+    <header class="masthead shell">
+      <a class="wordmark" href="/" aria-current={here === '/' ? 'page' : undefined}>
+        {/* The same three rules as the favicon — an index mark, not a logo. */}
+        <svg class="mark" viewBox="0 0 32 32" aria-hidden="true">
+          <rect x="1" y="7" width="24" height="4" rx="2" />
+          <rect x="1" y="14" width="16" height="4" rx="2" />
+          <rect x="1" y="21" width="9" height="4" rx="2" />
+        </svg>
+        <span class="wordmark-text">Soochi</span>
+      </a>
+      <nav>
+        {NAV.map((item) => (
+          <a href={item.href} aria-current={inSection(item) ? 'page' : undefined}>
+            {item.label}
+          </a>
+        ))}
+        {/* One circle, half filled — the appearance icon. It needs no
+            second glyph: rotating it is the state change. */}
+        <button class="theme-toggle" type="button" title="Switch appearance">
+          <span class="sr" data-theme-label>Switch to dark</span>
+          <svg viewBox="0 0 16 16" aria-hidden="true">
+            <circle cx="8" cy="8" r="6.4" fill="none" stroke="currentColor" stroke-width="1.3" />
+            <path d="M8 1.6a6.4 6.4 0 0 1 0 12.8z" fill="currentColor" />
+          </svg>
+        </button>
+      </nav>
+    </header>
+
+    <main class="shell" id="main">
+      <slot />
+    </main>
+
+    <footer class="foot shell">
+      <div class="foot-top">
+        <div class="foot-about">
+          <p class="foot-mark">Soochi</p>
+          <p>
+            An index of the organisations, datasets, tools and archives that
+            people working on public problems actually use.
+          </p>
+        </div>
+
+        {FOOTER.map((col) => (
+          <nav class="foot-col" aria-label={col.heading}>
+            <h2>{col.heading}</h2>
+            <ul>
+              {col.links.map((l) => (
+                <li><a href={l.href}>{l.label}</a></li>
+              ))}
+            </ul>
+          </nav>
+        ))}
+      </div>
+
+      {/* A colophon, not a copyright line: the licence is the useful fact
+          and the typefaces are the only other thing worth saying. */}
+      <p class="colophon">
+        Entries are in the public domain under
+        <a href="https://creativecommons.org/publicdomain/zero/1.0/" rel="license"> CC0</a>;
+        the code is MIT. Set in Public Sans and Source Serif 4.
+      </p>
+    </footer>
+
+    <script is:inline>
+      ;(function () {
+        var root = document.documentElement
+        var btn = document.querySelector('.theme-toggle')
+        var label = document.querySelector('[data-theme-label]')
+        if (!btn || !label) return
+
+        function current() {
+          return (
+            root.dataset.theme ||
+            (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+          )
+        }
+
+        function paint() {
+          var dark = current() === 'dark'
+          label.textContent = dark ? 'Switch to light' : 'Switch to dark'
+          btn.setAttribute('aria-pressed', String(dark))
+        }
+
+        btn.addEventListener('click', function () {
+          var next = current() === 'dark' ? 'light' : 'dark'
+          root.dataset.theme = next
+          try {
+            localStorage.setItem('theme', next)
+          } catch (e) {}
+          paint()
+        })
+
+        paint()
+      })()
+    </script>
+  </body>
+</html>

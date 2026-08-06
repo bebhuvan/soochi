@@ -1,0 +1,454 @@
+---
+import { getCollection } from 'astro:content'
+import Base from '../layouts/Base.astro'
+import {
+  KINDS, TOPICS, TOPIC_GROUPS, GEOGRAPHIES, GEOGRAPHY_GROUPS,
+  ORG_TYPES, LICENSING, ACCESS, STATUSES,
+} from '../taxonomy'
+
+const all = await getCollection('entries')
+
+// `dead` entries stay in the repo and in index.json — the record of what
+// used to exist is worth keeping — but they are not shown here.
+const shown = all
+  .filter((e) => e.data.status !== 'dead')
+  .sort((a, b) =>
+    a.data.name
+      .replace(/^(the|a)\s+/i, '')
+      .localeCompare(b.data.name.replace(/^(the|a)\s+/i, ''), 'en', {
+        sensitivity: 'base',
+      }),
+  )
+
+/**
+ * Facet groups, in rail order. Only values actually in use are listed —
+ * with thirty topics and forty-four places, showing the whole vocabulary
+ * would bury the handful that return anything.
+ *
+ * `sub` splits a long facet into labelled runs. It is presentational
+ * only: an entry still carries a flat term, so the grouping can change
+ * without re-tagging anything.
+ */
+const GROUPS = [
+  { key: 'kind', heading: 'Kind', labels: KINDS, get: (d: any) => [d.kind], sub: null },
+  {
+    key: 'topics', heading: 'Topic', labels: TOPICS, get: (d: any) => d.topics,
+    sub: (v: string) => TOPIC_GROUPS.find((g) => (g.topics as string[]).includes(v))?.label ?? '',
+  },
+  {
+    key: 'geography', heading: 'Where', labels: GEOGRAPHIES, get: (d: any) => d.geography,
+    sub: (v: string) => GEOGRAPHY_GROUPS.find((g) => g.test(v as never))?.label ?? '',
+  },
+  /* Added once the index carried a critical mass of official sources.
+     "Is this the government's own number or someone's estimate of it?"
+     is a question people genuinely arrive with — unlike non-profit vs
+     commercial, which legal form predicts badly. */
+  { key: 'orgType', heading: 'Run by', labels: ORG_TYPES, get: (d: any) => (d.orgType ? [d.orgType] : []), sub: null },
+  { key: 'licensing', heading: 'Licence', labels: LICENSING, get: (d: any) => (d.licensing ? [d.licensing] : []), sub: null },
+  { key: 'access', heading: 'Cost', labels: ACCESS, get: (d: any) => (d.access ? [d.access] : []), sub: null },
+] as const
+
+const facets = GROUPS.map((g) => {
+  const counts = new Map<string, number>()
+  for (const e of shown) for (const v of g.get(e.data)) {
+    counts.set(v, (counts.get(v) ?? 0) + 1)
+  }
+  const values = Object.keys(g.labels)
+    .filter((v) => counts.has(v))
+    .map((v) => ({
+      value: v,
+      label: (g.labels as Record<string, string>)[v],
+      count: counts.get(v)!,
+      sub: g.sub ? g.sub(v) : '',
+    }))
+
+  // Only label the runs when more than one is actually present.
+  const subs = [...new Set(values.map((v) => v.sub))].filter(Boolean)
+  const grouped = subs.length > 1
+
+  const max = Math.max(1, ...values.map((v) => v.count))
+  return { ...g, values, max, grouped }
+})
+  // A facet with a single value is a filter with nothing to choose
+  // between — it only ever narrows to what you already see.
+  .filter((g) => g.values.length > 1)
+
+/** Kind counts in taxonomy order — drives the composition strip. */
+const composition = facets.find((f) => f.key === 'kind')!.values
+
+const recent = [...shown]
+  .sort((a, b) => b.data.added.getTime() - a.data.added.getTime())
+  .slice(0, 4)
+
+const updated = shown.reduce<Date | null>(
+  (latest, e) => (!latest || e.data.added > latest ? e.data.added : latest),
+  null,
+)
+
+const fmtDate = (d: Date) =>
+  d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
+
+/* The index is a list of things, so say so. Search engines will render a
+   carousel from this; more usefully, it makes the page machine-readable
+   to anything that is not this site's own JSON. */
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  name: 'Soochi',
+  numberOfItems: shown.length,
+  mainEntity: {
+    '@type': 'ItemList',
+    itemListOrder: 'https://schema.org/ItemListOrderAscending',
+    numberOfItems: shown.length,
+    itemListElement: shown.slice(0, 100).map((e, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      url: new URL(`/e/${e.id}`, Astro.site).toString(),
+      name: e.data.name,
+    })),
+  },
+}
+---
+
+<Base schema={schema}>
+  <section class="opening">
+    <p class="statement">
+      An index of the organisations, datasets, tools and archives that people
+      working on public problems actually use — built to help you find
+      <em>the ones you didn't know existed</em>.
+    </p>
+
+    {/* A directory has to look alive to be worth returning to, and the
+        newest entries are the only honest evidence of that. */}
+    <aside class="recent">
+      <h2>Recently added</h2>
+      <ul>
+        {recent.map((e) => (
+          <li data-kind={e.data.kind}>
+            <a href={e.data.url} rel="noopener">
+              <span class="dot" aria-hidden="true" />
+              {e.data.name}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </aside>
+
+    <p class="opening-meta">
+      {shown.length} entries across {composition.length} kinds{
+        updated ? ` · last added ${fmtDate(updated)}` : ''
+      }
+    </p>
+
+    {/* The strip does structural work: it is the rule that closes the
+        masthead and opens the index, and it happens to be true. */}
+    <div
+      class="strip"
+      role="img"
+      aria-label={`Composition by kind: ${composition
+        .map((c) => `${c.count} ${c.label.toLowerCase()}`)
+        .join(', ')}.`}
+    >
+      {composition.map((c) => (
+        <span data-kind={c.value} style={`--n:${c.count}`} title={`${c.label} — ${c.count}`} />
+      ))}
+    </div>
+  </section>
+
+  <div class="index">
+    <form class="rail" role="search" aria-label="Filter the index">
+      <div class="search">
+        <label class="sr" for="q">Search the index</label>
+        <input
+          id="q"
+          type="search"
+          name="q"
+          placeholder="Search"
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <button class="clear" type="button" aria-label="Clear search">×</button>
+      </div>
+
+      {/* On a phone the whole vocabulary sits between you and the first
+          entry, so below the breakpoint it collapses behind this. */}
+      <button class="filters-toggle" type="button" aria-expanded="false" aria-controls="facet-groups">
+        Filters<span class="ft-count" hidden></span>
+      </button>
+
+      <div class="facet-groups" id="facet-groups">
+        {facets.map((g) => (
+          <div class="facet" data-group={g.key}>
+            <h2 id={`facet-${g.key}`}>{g.heading}</h2>
+            <ul aria-labelledby={`facet-${g.key}`}>
+              {g.values.map((v, i) => (
+                <li data-sub={g.grouped && v.sub !== g.values[i - 1]?.sub ? v.sub : undefined}>
+                  <button
+                    type="button"
+                    aria-pressed="false"
+                    data-value={v.value}
+                    data-kind={g.key === 'kind' ? v.value : undefined}
+                    style={`--share:${Math.round((v.count / g.max) * 100)}%`}
+                  >
+                    {g.key === 'kind' && <span class="dot" aria-hidden="true" />}
+                    <span class="label">{v.label}</span>
+                    <span class="leader" aria-hidden="true" />
+                    <span class="count">{v.count}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+
+        <button class="reset" type="button" hidden>Clear all filters</button>
+      </div>
+    </form>
+
+    <div class="list">
+      <p class="sr" aria-live="polite" data-live></p>
+
+      <ul class="entries">
+        {shown.map((e, i) => {
+          const d = e.data
+          const labels = [
+            KINDS[d.kind],
+            ...d.topics.map((t) => TOPICS[t]),
+            ...d.geography.map((g) => GEOGRAPHIES[g]),
+          ]
+          return (
+            <li
+              class="entry"
+              style={`--i:${Math.min(i, 14)}`}
+              data-status={d.status}
+              data-status-label={d.status !== 'live' ? STATUSES[d.status] : undefined}
+              data-kind={d.kind}
+              data-topics={d.topics.join('|')}
+              data-geography={d.geography.join('|')}
+              data-org-type={d.orgType ?? ''}
+              data-licensing={d.licensing ?? ''}
+              data-access={d.access ?? ''}
+              data-text={[d.name, ...d.alternateNames, d.blurb, ...labels]
+                .join(' ')
+                .toLowerCase()}
+            >
+              {/* The row opens the entry; the arrow is the shortcut
+                  straight to the site for people who only want the link.
+                  Two siblings rather than nested anchors. */}
+              <a class="entry-link" href={`/e/${e.id}`}>
+                <span class="head">
+                  <span class="name" data-status-label={d.status !== 'live' ? STATUSES[d.status] : undefined}>
+                    {d.name}
+                  </span>
+                </span>
+                <p class="blurb">{d.blurb}</p>
+                {/* Kind, one topic, place. The rail is where the full
+                    taxonomy lives — repeating all of it here made the
+                    loudest thing in each row its metadata. */}
+                <p class="facets">
+                  <span class="chip chip--kind">{KINDS[d.kind]}</span>
+                  <span class="chip">{TOPICS[d.topics[0]]}</span>
+                  <span class="chip">
+                    {d.geography.map((g) => GEOGRAPHIES[g]).join(', ')}
+                  </span>
+                </p>
+              </a>
+
+              <a class="out" href={d.url} rel="noopener" title={`Go straight to ${d.name}`}>
+                <span class="sr">Go straight to {d.name}</span>
+                <svg viewBox="0 0 10 10" fill="none" aria-hidden="true">
+                  <path
+                    d="M1.6 8.4 8.4 1.6M3.4 1.6h5v5"
+                    stroke="currentColor"
+                    stroke-width="1.4"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </a>
+            </li>
+          )
+        })}
+      </ul>
+
+      {/* "Nothing matches" is exactly when someone needs to be told where
+          else to look. The link is derived from the index rather than a
+          hand-kept list, so it cannot go stale. */}
+      <p class="empty" hidden>
+        Nothing matches that combination.
+        <button class="reset" type="button">Clear all filters</button>
+        <span class="empty-alt">
+          Or look at <a href="/directories">other directories</a> — several go
+          deeper on one subject than this index does.
+        </span>
+      </p>
+    </div>
+  </div>
+</Base>
+
+<script>
+  const GROUPS = ['kind', 'topics', 'geography', 'orgType', 'licensing', 'access'] as const
+  type Group = (typeof GROUPS)[number]
+
+  const rail = document.querySelector('.rail') as HTMLFormElement
+  const input = document.querySelector('#q') as HTMLInputElement
+  const search = document.querySelector('.search') as HTMLElement
+  const live = document.querySelector('[data-live]') as HTMLElement
+  const emptyMsg = document.querySelector('.empty') as HTMLElement
+  const resetButtons = document.querySelectorAll<HTMLButtonElement>('.reset')
+  const filtersToggle = document.querySelector('.filters-toggle') as HTMLButtonElement
+  const ftCount = document.querySelector('.ft-count') as HTMLElement
+
+  filtersToggle.addEventListener('click', () => {
+    const open = rail.toggleAttribute('data-open')
+    filtersToggle.setAttribute('aria-expanded', String(open))
+  })
+
+  const split = (s: string | undefined) => (s ? s.split('|').filter(Boolean) : [])
+
+  const entries = [...document.querySelectorAll<HTMLElement>('.entry')].map((el) => ({
+    el,
+    text: el.dataset.text ?? '',
+    kind: split(el.dataset.kind),
+    topics: split(el.dataset.topics),
+    geography: split(el.dataset.geography),
+    orgType: split(el.dataset.orgType),
+    licensing: split(el.dataset.licensing),
+    access: split(el.dataset.access),
+  }))
+
+  const state: { q: string } & Record<Group, Set<string>> = {
+    q: '',
+    kind: new Set(),
+    topics: new Set(),
+    geography: new Set(),
+    orgType: new Set(),
+    licensing: new Set(),
+    access: new Set(),
+  }
+
+  type Entry = (typeof entries)[number]
+
+  /** `skip` leaves one group out, which is how facet counts stay honest:
+      a group's own counts are computed as if nothing in it were selected. */
+  function matches(e: Entry, skip: Group | null) {
+    if (state.q && !e.text.includes(state.q)) return false
+    for (const g of GROUPS) {
+      if (g === skip) continue
+      const sel = state[g]
+      if (sel.size && !e[g].some((v) => sel.has(v))) return false
+    }
+    return true
+  }
+
+  function apply() {
+    let visible = 0
+    for (const e of entries) {
+      const ok = matches(e, null)
+      e.el.hidden = !ok
+      if (ok) visible++
+    }
+
+    // Redraw the rail: counts, bar widths, and what has gone empty.
+    for (const g of GROUPS) {
+      const pool = entries.filter((e) => matches(e, g))
+      const buttons = rail.querySelectorAll<HTMLButtonElement>(
+        `.facet[data-group="${g}"] button`,
+      )
+      let max = 1
+      const counts = new Map<HTMLButtonElement, number>()
+      for (const b of buttons) {
+        const v = b.dataset.value!
+        const n = pool.filter((e) => e[g].includes(v)).length
+        counts.set(b, n)
+        if (n > max) max = n
+      }
+      for (const [b, n] of counts) {
+        b.style.setProperty('--share', `${Math.round((n / max) * 100)}%`)
+        b.querySelector('.count')!.textContent = String(n)
+        const selected = b.getAttribute('aria-pressed') === 'true'
+        if (n === 0 && !selected) b.dataset.empty = ''
+        else delete b.dataset.empty
+      }
+    }
+
+    const active = GROUPS.reduce((n, g) => n + state[g].size, 0)
+    const filtering = state.q !== '' || active > 0
+    emptyMsg.hidden = visible > 0
+    search.toggleAttribute('data-filled', state.q !== '')
+    for (const b of resetButtons) b.hidden = !filtering
+    ftCount.textContent = String(active)
+    ftCount.hidden = active === 0
+    live.textContent = `${visible} ${visible === 1 ? 'entry' : 'entries'}`
+
+    writeUrl(filtering)
+  }
+
+  function writeUrl(filtering: boolean) {
+    const p = new URLSearchParams()
+    if (state.q) p.set('q', state.q)
+    for (const g of GROUPS) if (state[g].size) p.set(g, [...state[g]].join(','))
+    const url = filtering ? `?${p}` : location.pathname
+    history.replaceState(null, '', url)
+  }
+
+  function readUrl() {
+    const p = new URLSearchParams(location.search)
+    state.q = (p.get('q') ?? '').trim().toLowerCase()
+    input.value = p.get('q') ?? ''
+    for (const g of GROUPS) {
+      const vals = (p.get(g) ?? '').split(',').filter(Boolean)
+      state[g] = new Set(vals)
+      for (const b of rail.querySelectorAll<HTMLButtonElement>(
+        `.facet[data-group="${g}"] button`,
+      )) {
+        b.setAttribute('aria-pressed', String(vals.includes(b.dataset.value!)))
+      }
+    }
+  }
+
+  rail.addEventListener('click', (ev) => {
+    const b = (ev.target as HTMLElement).closest<HTMLButtonElement>('.facet button')
+    if (!b) return
+    const g = b.closest<HTMLElement>('.facet')!.dataset.group as Group
+    const v = b.dataset.value!
+    const selected = state[g].has(v)
+    // A facet that would return nothing is a dead end — ignore the click.
+    if (!selected && b.dataset.empty !== undefined) return
+    if (selected) state[g].delete(v)
+    else state[g].add(v)
+    b.setAttribute('aria-pressed', String(!selected))
+    apply()
+  })
+
+  input.addEventListener('input', () => {
+    state.q = input.value.trim().toLowerCase()
+    apply()
+  })
+
+  rail.addEventListener('submit', (ev) => ev.preventDefault())
+
+  document.querySelector('.search .clear')!.addEventListener('click', () => {
+    input.value = ''
+    state.q = ''
+    input.focus()
+    apply()
+  })
+
+  for (const b of resetButtons) {
+    b.addEventListener('click', () => {
+      state.q = ''
+      input.value = ''
+      for (const g of GROUPS) {
+        state[g].clear()
+        for (const btn of rail.querySelectorAll(`.facet[data-group="${g}"] button`)) {
+          btn.setAttribute('aria-pressed', 'false')
+        }
+      }
+      apply()
+    })
+  }
+
+  readUrl()
+  apply()
+</script>

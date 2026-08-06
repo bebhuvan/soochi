@@ -6,10 +6,10 @@
   X-Frame-Options: DENY
   Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
   Permissions-Policy: geolocation=(), microphone=(), camera=(), interest-cohort=()
-  # Two third parties, both pinned by origin: map tiles on /map, and the
-  # Turnstile widget on /submit. Turnstile ships no SRI hash (versionless
-  # endpoint), so the origin pin is the control that applies.
-  Content-Security-Policy: default-src 'self'; img-src 'self' data: https://*.basemaps.cartocdn.com; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'
+  # Third-party origins are explicit: map tiles, Turnstile, and Cloudflare's
+  # automatically injected Web Analytics beacon. Cloudflare adds SRI to the
+  # beacon; Turnstile's versionless script is controlled by its origin pin.
+  Content-Security-Policy: default-src 'self'; img-src 'self' data: https://*.basemaps.cartocdn.com; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com https://static.cloudflareinsights.com; frame-src https://challenges.cloudflare.com; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'
 
 # Hashed filenames never change contents, so they can be cached forever.
 /_astro/*

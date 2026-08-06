@@ -13,13 +13,13 @@ const TURNSTILE_KEY =
 
 <Base
   title="Add an entry"
-  description="Paste a link and we'll draft the entry for you to check."
+  description="Suggest a source for Soochi's public-interest directory."
 >
   <div class="page-head">
     <h1>Add an entry</h1>
     <p class="statement">
-      Paste a link. We read the page and draft the entry; you correct what
-      it got wrong — <em>you are the editor, it is the typist</em>.
+      Paste a link, describe what it does, and send it for review.
+      <em>A person checks every entry before it appears.</em>
     </p>
   </div>
 
@@ -31,11 +31,11 @@ const TURNSTILE_KEY =
         <label class="sr" for="lookup-url">Link to the thing you're adding</label>
         <input id="lookup-url" type="url" placeholder="https://example.com"
           autocomplete="url" spellcheck="false" enterkeyhint="go" />
-        <button type="button" id="lookup" class="btn btn--primary">Read the page</button>
+        <button type="button" id="lookup" class="btn btn--primary">Continue</button>
       </div>
       <p class="hint" id="lookup-status">
-        Takes about ten seconds. Or
-        <button type="button" class="linkish" id="skip">fill it in yourself</button>.
+        The remaining fields take about a minute. Or
+        <button type="button" class="linkish" id="skip">start with a blank link</button>.
       </p>
       <div id="turnstile" class="cf-turnstile" data-sitekey={TURNSTILE_KEY} data-theme="auto"></div>
       {!TURNSTILE_KEY && (
@@ -322,59 +322,13 @@ const TURNSTILE_KEY =
     if ((e as KeyboardEvent).key === 'Enter') { e.preventDefault(); lookupBtn.click() }
   })
 
-  /* ── Draft from a URL ─────────────────────────────────────────────── */
+  /* ── Continue from the URL step ──────────────────────────────────── */
 
   lookupBtn.addEventListener('click', async () => {
     const url = lookupUrl.value.trim()
     if (!url) { lookupUrl.focus(); return }
-
-    lookupBtn.disabled = true
-    lookupStatus.textContent = 'Reading the page…'
-
-    try {
-      const res = await fetch('/api/enrich', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ url, token: turnstileToken() }),
-      })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error ?? 'Lookup failed.')
-
-      const d = data.draft
-      $<HTMLInputElement>('#f-name').value = d.name ?? ''
-      blurb.value = d.blurb ?? ''
-      if (d.kind) {
-        const r = document.querySelector<HTMLInputElement>(`input[name="kind"][value="${d.kind}"]`)
-        if (r) r.checked = true
-      }
-      $<HTMLSelectElement>('#f-orgType').value =
-        d.orgType && d.orgType !== 'unknown' ? d.orgType : ''
-      $<HTMLSelectElement>('#f-licensing').value = d.licensing ?? ''
-      $<HTMLSelectElement>('#f-access').value = d.access ?? ''
-      for (const [group, vals] of [['topics', (d.topics ?? []).slice(0, MAX_TOPICS)], ['geography', d.geography ?? []]] as const) {
-        for (const el of all<HTMLInputElement>(`input[name="${group}"]`)) el.checked = vals.includes(el.value)
-      }
-
-      enforceTopicCap(); setCount(); reveal()
-
-      const shaky = (d.uncertain ?? []).join(', ')
-      const strong = document.createElement('strong')
-      strong.textContent = 'Draft filled in — check every field.'
-      lookupStatus.replaceChildren(
-        strong,
-        document.createTextNode(
-          ` Confidence: ${d.confidence ?? 'unknown'}.` +
-          (shaky ? ` Least sure about: ${shaky}.` : '') +
-          (data.sources?.length ? ` Read ${data.sources.length} source(s).` : ''),
-        ),
-      )
-    } catch (err) {
-      lookupStatus.textContent = `${(err as Error).message} You can still fill it in yourself.`
-      reveal()
-    } finally {
-      lookupBtn.disabled = false
-      ;(window as unknown as { turnstile?: { reset: () => void } }).turnstile?.reset()
-    }
+    lookupStatus.textContent = 'Link added.'
+    reveal()
   })
 
   /* ── Submit ───────────────────────────────────────────────────────── */

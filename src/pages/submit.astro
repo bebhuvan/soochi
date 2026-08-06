@@ -5,7 +5,10 @@ import {
   LICENSING, ACCESS, ORG_TYPES, keysOf,
 } from '../taxonomy'
 
-const TURNSTILE_KEY = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? ''
+// Turnstile site keys are public by design. The environment variable remains
+// available as an override for preview or staging builds.
+const TURNSTILE_KEY =
+  import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || '0x4AAAAAAEIN0_a39ClHlkv1'
 ---
 
 <Base

@@ -84,7 +84,7 @@ with `npx wrangler secret put NAME` (or in the Cloudflare dashboard):
 | `GITHUB_REPO` | `owner/repo` |
 | `GITHUB_BASE_BRANCH` | optional, defaults to `main` |
 | `TURNSTILE_SECRET` | secret — from the Turnstile dashboard |
-| `PUBLIC_TURNSTILE_SITE_KEY` | build-time, not secret — set it in the build environment before `npm run build` |
+| `PUBLIC_TURNSTILE_SITE_KEY` | optional build-time override for preview/staging; production's public site key is committed in the submission page |
 
 The Worker configuration includes native per-IP limits: four enrichments and
 six submissions per minute. Turnstile remains mandatory on both routes.

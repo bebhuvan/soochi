@@ -32,11 +32,11 @@ Sanchaya is a Bengaluru-based nonprofit that builds open-source digital infrastr
 
 **Flagship projects:**
 
-- **Vachana Sanchaya** (vachana.sanchaya.net) — a digital research platform for 12th-century Vachana literature, the radical Bhakti poetry of Basavanna, Akkamahadevi, Allama Prabhu, and others. It provides full-text search, concordance, word frequency analysis, and scholarly annotations across thousands of vachanas. This is the most advanced digital humanities project in any Indian language.
+- **[Vachana Sanchaya](https://vachana.sanchaya.net/)** — a digital research platform for 12th-century Vachana literature, the radical Bhakti poetry of Basavanna, Akkamahadevi, Allama Prabhu, and others. It provides full-text search, concordance, word frequency analysis, and scholarly annotations across thousands of vachanas. This is the most advanced digital humanities project in any Indian language.
 
-- **Pustaka Sanchaya** (pustaka.sanchaya.net) — a library of digitised out-of-copyright and CC-licensed Kannada books. The collection is built through community digitisation events (scan-a-thons) and partnerships with publishers and authors.
+- **[Pustaka Sanchaya](https://pustaka.sanchaya.net/)** — a library of digitised out-of-copyright and CC-licensed Kannada books. The collection is built through community digitisation events (scan-a-thons) and partnerships with publishers and authors.
 
-- **Kannada Fonts** (fonts.sanchaya.net) — a curated collection of open-source Kannada fonts, including the Karnata F-Kittel font designed specifically for scholarly typesetting. Addresses the chronic shortage of quality Kannada typefaces.
+- **[Kannada Fonts](https://fonts.sanchaya.net/)** — a curated collection of open-source Kannada fonts, including the Karnata F-Kittel font designed specifically for scholarly typesetting. Addresses the chronic shortage of quality Kannada typefaces.
 
 - **Author-specific portals** — dedicated search and study tools for major Kannada poets: Janna Sanchaya, Ranna Sanchaya, Sarvajna Sanchaya, Daasa Sanchaya, and the Kavirajamarga Sanchaya (the earliest available Kannada text, from ~850 CE).
 

@@ -3,7 +3,7 @@ name: "Overpass Turbo"
 url: "https://overpass-turbo.eu/"
 blurb: "Web-based query tool for OpenStreetMap — run spatial queries like 'all hospitals in Bangalore' or 'all water bodies in this district' and export as GeoJSON"
 kind: tool
-orgType: community
+orgType: collective
 topics: ["cities", "technology", "land"]
 geography: ["global", "india"]
 licensing: open

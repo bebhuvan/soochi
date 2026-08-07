@@ -3,7 +3,7 @@ name: "uMap"
 url: "https://umap.openstreetmap.fr/en/"
 blurb: "Create custom interactive maps with OpenStreetMap layers in minutes — no coding, just drop data, style, and embed anywhere"
 kind: tool
-orgType: community
+orgType: collective
 topics: ["cities", "technology", "land"]
 geography: ["global", "india"]
 licensing: open

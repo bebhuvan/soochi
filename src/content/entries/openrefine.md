@@ -3,7 +3,7 @@ name: "OpenRefine"
 url: "https://openrefine.org/"
 blurb: "Powerful free tool for cleaning messy data — transform, reconcile, and extend datasets with web services, essential for government spreadsheet work"
 kind: tool
-orgType: community
+orgType: collective
 topics: ["technology"]
 geography: ["global", "india"]
 licensing: open

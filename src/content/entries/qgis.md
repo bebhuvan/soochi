@@ -3,7 +3,7 @@ name: "QGIS"
 url: "https://qgis.org/"
 blurb: "The standard open-source desktop GIS — full-featured spatial analysis, map-making, and geodata processing, free and cross-platform, with a vast plugin ecosystem"
 kind: tool
-orgType: community
+orgType: collective
 topics: ["land", "cities", "technology", "environment"]
 geography: ["global", "india"]
 licensing: open

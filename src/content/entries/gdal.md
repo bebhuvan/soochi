@@ -3,7 +3,7 @@ name: "GDAL"
 url: "https://gdal.org/"
 blurb: "The foundational library for geospatial data conversion — translate between any GIS format, reproject coordinates, and process raster/vector data at scale"
 kind: tool
-orgType: community
+orgType: collective
 topics: ["technology", "land", "environment"]
 geography: ["global", "india"]
 licensing: open

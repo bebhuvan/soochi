@@ -3,7 +3,7 @@ name: "Tabula"
 url: "https://tabula.technology/"
 blurb: "Extract tables from PDFs into CSV or Excel — the essential first step for working with Indian government data locked inside PDF reports"
 kind: tool
-orgType: community
+orgType: collective
 topics: ["technology", "governance"]
 geography: ["global", "india"]
 licensing: open

@@ -1,7 +1,7 @@
 ---
 name: "World Bank Atlas of Global Development"
 url: "https://data360.worldbank.org/en/atlas/"
-blurb: "The World Bank's interactive data storytelling platform — curated visualisations tracking progress on people, prosperity, planet, infrastructure, and digital transformation across countries"
+blurb: "The World Bank's data storytelling platform — curated visualisations tracking progress on people, prosperity, planet, infrastructure, and digital globally"
 kind: dashboard
 orgType: multilateral
 topics: ["economy", "demography", "climate", "technology"]

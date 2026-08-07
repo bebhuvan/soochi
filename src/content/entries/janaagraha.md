@@ -1,7 +1,7 @@
 ---
 name: "Janaagraha"
 url: "https://www.janaagraha.org/"
-blurb: "City-systems reform organisation working on municipal finance, civic participation, and urban governance — transforming quality of life in India's cities for nearly 25 years"
+blurb: "City-systems reform organisation focused on municipal finance, civic participation, and urban governance — transforming India's cities for nearly 25 years"
 kind: organisation
 orgType: nonprofit
 topics: ["cities", "governance", "public-finance"]

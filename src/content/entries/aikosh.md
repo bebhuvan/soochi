@@ -1,7 +1,7 @@
 ---
 name: "AiKosh"
 url: "https://aikosh.indiaai.gov.in/"
-blurb: "IndiaAI's national platform for AI datasets, models, compute, and toolkits — 358+ curated datasets, 220+ models including Indic language LLMs, and free GPU access via AIRAWAT"
+blurb: "IndiaAI's national AI platform — 358+ curated datasets, 220+ models including Indic language LLMs, toolkits, and free GPU compute via AIRAWAT supercomputer"
 kind: dataset
 orgType: government
 topics: ["technology", "governance"]

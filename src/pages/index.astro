@@ -228,6 +228,7 @@ const schema = {
               data-org-type={d.orgType ?? ''}
               data-licensing={d.licensing ?? ''}
               data-access={d.access ?? ''}
+              data-name={d.name.toLowerCase()}
               data-text={[d.name, ...d.alternateNames, d.blurb, ...labels]
                 .join(' ')
                 .toLowerCase()}
@@ -298,6 +299,7 @@ const schema = {
   const resetButtons = document.querySelectorAll<HTMLButtonElement>('.reset')
   const filtersToggle = document.querySelector('.filters-toggle') as HTMLButtonElement
   const ftCount = document.querySelector('.ft-count') as HTMLElement
+  const listEl = document.querySelector('.entries') as HTMLUListElement
 
   filtersToggle.addEventListener('click', () => {
     const open = rail.toggleAttribute('data-open')
@@ -306,9 +308,19 @@ const schema = {
 
   const split = (s: string | undefined) => (s ? s.split('|').filter(Boolean) : [])
 
+  /** Search normalisation keeps punctuation from blocking obvious matches. */
+  function normText(s: string): string {
+    return s
+      .toLowerCase()
+      .replace(/[^a-z0-9\s]+/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+  }
+
   const entries = [...document.querySelectorAll<HTMLElement>('.entry')].map((el) => ({
     el,
-    text: el.dataset.text ?? '',
+    text: normText(el.dataset.text ?? ''),
+    name: normText(el.dataset.name ?? ''),
     kind: split(el.dataset.kind),
     topics: split(el.dataset.topics),
     geography: split(el.dataset.geography),
@@ -329,10 +341,74 @@ const schema = {
 
   type Entry = (typeof entries)[number]
 
-  /** `skip` leaves one group out, which is how facet counts stay honest:
-      a group's own counts are computed as if nothing in it were selected. */
+  /** Escape regex special characters so short terms can safely seed a \b check. */
+  function escapeRegex(s: string): string {
+    return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  }
+
+  /**
+   * True when every character of `q` appears in `target` in order —
+   * "agrcultre" matches "agriculture", but "agri" does not match
+   * "agree". Used as a cheap typo-tolerant fallback on the name field
+   * for terms of four or more characters.
+   */
+  function isSubsequence(q: string, target: string): boolean {
+    let qi = 0
+    for (let ti = 0; ti < target.length && qi < q.length; ti++) {
+      if (target[ti] === q[qi]) qi++
+    }
+    return qi === q.length
+  }
+
+  /**
+   * Score an entry against the search query.  Every whitespace-delimited
+   * term of two or more characters must match somewhere; the entry is
+   * excluded (returns -1) if any term misses entirely.
+   *
+   * Name matches carry more weight than blurb / label matches, so
+   * results sort by relevance instead of alphabetically.
+   */
+  function scoreSearch(e: Entry, raw: string): number {
+    const terms = normText(raw).split(/\s+/).filter((t) => t.length >= 2)
+    if (!terms.length) return 0
+
+    let total = 0
+    for (const term of terms) {
+      let best = 0
+
+      // Word-start match in the entry name
+      if (new RegExp('\\b' + escapeRegex(term)).test(e.name)) {
+        best = 10
+      }
+      // Substring match in the entry name
+      else if (e.name.includes(term)) {
+        best = 6
+      }
+      // Word-start match anywhere in the full text
+      else if (new RegExp('\\b' + escapeRegex(term)).test(e.text)) {
+        best = 3
+      }
+      // Substring match in the full text
+      else if (e.text.includes(term)) {
+        best = 1
+      }
+      // Typo-tolerant: subsequence match against each word of the name
+      else if (term.length >= 4) {
+        const nameWords = e.name.split(/\s+/)
+        if (nameWords.some((w) => isSubsequence(term, w))) {
+          best = 0.5
+        }
+      }
+
+      // Every term must land somewhere or the entry is excluded.
+      if (best === 0) return -1
+      total += best
+    }
+    return total
+  }
+
+  /** `skip` leaves one group out — facet counts stay honest. */
   function matches(e: Entry, skip: Group | null) {
-    if (state.q && !e.text.includes(state.q)) return false
     for (const g of GROUPS) {
       if (g === skip) continue
       const sel = state[g]
@@ -342,11 +418,33 @@ const schema = {
   }
 
   function apply() {
-    let visible = 0
-    for (const e of entries) {
-      const ok = matches(e, null)
-      e.el.hidden = !ok
-      if (ok) visible++
+    const terms = normText(state.q).split(/\s+/).filter((t) => t.length >= 2)
+
+    // Score every entry, then collect the ones that pass both search
+    // and active facet selections.
+    const scored = entries.map((e) => ({
+      e,
+      score: terms.length ? scoreSearch(e, state.q) : 0,
+      facetOk: matches(e, null),
+    }))
+
+    const visible = scored.filter((s) => s.facetOk && s.score >= 0)
+
+    // Sort: highest score first, then alphabetical for ties so the
+    // order is stable between keystrokes.
+    visible.sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score
+      return a.e.name.localeCompare(b.e.name, 'en', { sensitivity: 'base' })
+    })
+
+    // Move visible entries to the top in sorted order in one DOM pass.
+    const frag = document.createDocumentFragment()
+    for (const s of visible) frag.appendChild(s.e.el)
+    listEl.prepend(frag)
+
+    // Hide everything that didn't make the cut.
+    for (const s of scored) {
+      s.e.el.hidden = !(s.facetOk && s.score >= 0)
     }
 
     // Redraw the rail: counts, bar widths, and what has gone empty.
@@ -374,12 +472,12 @@ const schema = {
 
     const active = GROUPS.reduce((n, g) => n + state[g].size, 0)
     const filtering = state.q !== '' || active > 0
-    emptyMsg.hidden = visible > 0
+    emptyMsg.hidden = visible.length > 0
     search.toggleAttribute('data-filled', state.q !== '')
     for (const b of resetButtons) b.hidden = !filtering
     ftCount.textContent = String(active)
     ftCount.hidden = active === 0
-    live.textContent = `${visible} ${visible === 1 ? 'entry' : 'entries'}`
+    live.textContent = `${visible.length} ${visible.length === 1 ? 'entry' : 'entries'}`
 
     writeUrl(filtering)
   }

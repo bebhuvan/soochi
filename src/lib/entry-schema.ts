@@ -18,8 +18,8 @@ export const entrySchema = z.object({
 
   /**
    * One sentence, sixteen words or so. The character cap is the single
-   * most important rule in this schema: uniform, hand-written one-liners
-   * are the difference between a curated index and a scraped list.
+   * most important rule in this schema: uniform, concise one-liners are
+   * the difference between a scannable index and a wall of source copy.
    */
   blurb: z.string().min(20).max(160),
 

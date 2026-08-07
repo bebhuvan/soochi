@@ -18,7 +18,7 @@ export async function GET(context: APIContext) {
   return rss({
     title: 'Soochi',
     description:
-      'New entries in an index of civic organisations, open datasets, tools and archives.',
+      'New organisations, public datasets, tools and archives added to Soochi.',
     site: context.site!,
     trailingSlash: false,
     customData: [

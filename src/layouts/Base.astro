@@ -18,7 +18,7 @@ interface Props {
 
 const {
   title,
-  description = 'An index of civic organisations, open datasets, tools and archives — built to help you find the ones you did not know existed.',
+  description = 'A searchable index of organisations, public datasets, tools and archives for work on public problems, with a growing focus on India.',
   schema,
   noindex = false,
 } = Astro.props
@@ -178,8 +178,8 @@ const FOOTER = [
         <div class="foot-about">
           <p class="foot-mark">Soochi</p>
           <p>
-            An index of the organisations, datasets, tools and archives that
-            people working on public problems actually use.
+            <em>Soochi</em> can mean “index”. It brings organisations, public
+            data, tools and archives for public-interest work into one place.
           </p>
         </div>
 
@@ -195,13 +195,11 @@ const FOOTER = [
         ))}
       </div>
 
-      {/* A colophon, not a copyright line: the licence is the useful fact
-          and the typefaces are the only other thing worth saying. */}
+      {/* A colophon, not a copyright line: the licences are the useful fact. */}
       <p class="colophon">
-        Entries are licensed under
-        <a href="https://creativecommons.org/licenses/by/4.0/" rel="license"> CC BY 4.0</a>;
-        the <a href="https://github.com/bebhuvan/soochi">code is MIT</a>.
-        Set in Public Sans and Source Serif 4.
+        Entries and data are licensed under
+        <a href="https://creativecommons.org/licenses/by/4.0/" rel="license"> CC BY 4.0</a>.
+        The <a href="https://github.com/bebhuvan/soochi">site code is MIT</a>.
       </p>
     </footer>
 

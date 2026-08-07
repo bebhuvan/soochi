@@ -8,8 +8,8 @@ the archive preserving records everyone assumes were lost. Finding them still
 depends too often on knowing someone who already knows.
 
 [Soochi](https://soochi.fyi) is an attempt to write that knowledge down: a
-carefully edited index of civic organisations, datasets, tools, publications,
-archives and communities, with particular depth in India.
+searchable, structured index of civic organisations, datasets, tools,
+publications, archives and communities, with particular depth in India.
 
 [Browse the index](https://soochi.fyi) ·
 [Use the JSON data](https://soochi.fyi/index.json) ·
@@ -18,9 +18,10 @@ archives and communities, with particular depth in India.
 
 ## What makes it an index
 
-Soochi is deliberately not a scraped catalogue of links. Every entry is a small,
-reviewable text file with a human-written description, a controlled vocabulary
-and visible uncertainty.
+Soochi is deliberately not just a catalogue of links. Every entry is a small,
+reviewable text file with a concise description, a controlled vocabulary and
+visible uncertainty. Descriptions may be AI-assisted; the structure, sources and
+revision history remain open to inspection.
 
 - **One sentence has to earn the click.** Blurbs are capped at 160 characters,
   written for a colleague rather than copied from marketing material.

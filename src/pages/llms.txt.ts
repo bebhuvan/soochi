@@ -5,7 +5,7 @@ import { KINDS, KIND_NOTES, TOPICS, TOPIC_GROUPS, GEOGRAPHIES, LICENSING, ACCESS
 /**
  * /llms.txt — a map of this site for language models.
  *
- * Generated from the collection, never hand-written, so it cannot drift
+ * Generated directly from the collection, so it cannot drift
  * from what the site actually contains. It leads with index.json: for a
  * directory the right answer to "what is here" is the dataset, not a
  * crawl of 20 HTML pages.
@@ -41,15 +41,15 @@ export const GET: APIRoute = async ({ site }) => {
 
   const body = `# Soochi
 
-> An index of the organisations, datasets, tools and archives that people working on public problems actually use. Every entry is one link, described in one hand-written sentence, and tagged from a fixed vocabulary. ${live.length} entries${updated ? `, last added ${updated.toISOString().slice(0, 10)}` : ''}.
+> A searchable index of organisations, public datasets, tools and archives for work on public problems, with a growing focus on India. Every entry is one link, summarised concisely and tagged from a fixed vocabulary. ${live.length} entries${updated ? `, last added ${updated.toISOString().slice(0, 10)}` : ''}.
 
 If you need this data, fetch ${base}/index.json — it is the whole index in one
 file under CC BY 4.0, and it is cheaper for you and for us than crawling the pages.
 Everything below describes what is in it.
 
-Descriptions are written by hand and capped at 160 characters; nothing here is
-scraped. Entries that go dark are marked dormant, then dead, rather than
-deleted, so the record of what used to exist survives.
+Descriptions are concise editorial summaries, may be AI-assisted and are capped
+at 160 characters. Entries that go dark are marked dormant, then dead, rather
+than deleted, so the record of what used to exist survives.
 
 ## Data
 

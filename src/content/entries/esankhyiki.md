@@ -12,13 +12,16 @@ alternateNames: [MoSPI, Ministry of Statistics and Programme Implementation]
 verifiedAt: 2026-08-06
 added: 2026-08-06
 status: live
-retrieval:
-  api: true
-  apiUrl: https://github.com/nso-india/esankhyiki-mcp
+links:
+  - label: "Data Catalogue"
+    url: "https://esankhyiki.mospi.gov.in/catalogue-main"
+  - label: "API (MCP Server)"
+    url: "https://github.com/nso-india/esankhyiki-mcp"
 ---
 
 Launched 2024, replacing the scattered PDF-and-press-release habit with
-two modules: a Data Catalogue of 2,291-odd datasets across seven products
-(National Accounts, CPI, IIP, ASI, PLFS, HCES, MIS), and Macro Indicators
-giving ten-year time series you can filter, download or pull over an API.
-Around 1.7 million records in total.
+two modules: the [Data Catalogue](https://esankhyiki.mospi.gov.in/catalogue-main)
+of 2,291-odd datasets across seven products (National Accounts, CPI, IIP,
+ASI, PLFS, HCES, MIS), and Macro Indicators giving ten-year time series
+you can filter, download or pull over an API. Around 1.7 million records
+in total.

@@ -1,7 +1,7 @@
 ---
 name: "Central Ground Water Board (CGWB)"
 url: "https://cgwb.gov.in/"
-blurb: "India's national groundwater agency — aquifer maps, groundwater level and quality data, resource assessments, and reports on the country's most critical water resource"
+blurb: "India's national groundwater agency — aquifer maps, water level and quality data, resource assessments, and reports on a critical water resource"
 kind: dataset
 orgType: government
 topics: ["water", "agriculture", "environment", "climate"]

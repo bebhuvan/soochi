@@ -74,6 +74,6 @@ the whole review. It should take under a minute.
 
 ## Licence
 
-Entries are released under CC0 — see [LICENSE](LICENSE). By contributing
-you agree to place your contribution in the public domain. You are
-credited in the commit history and, if you want, on the entry itself.
+Entries are released under [CC BY 4.0](LICENSE). By contributing, you agree
+to license your contribution on those terms. You are credited in the commit
+history and, if you want, on the entry itself.

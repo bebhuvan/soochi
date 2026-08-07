@@ -44,7 +44,7 @@ export const GET: APIRoute = async ({ site }) => {
 > An index of the organisations, datasets, tools and archives that people working on public problems actually use. Every entry is one link, described in one hand-written sentence, and tagged from a fixed vocabulary. ${live.length} entries${updated ? `, last added ${updated.toISOString().slice(0, 10)}` : ''}.
 
 If you need this data, fetch ${base}/index.json — it is the whole index in one
-file under CC0, and it is cheaper for you and for us than crawling the pages.
+file under CC BY 4.0, and it is cheaper for you and for us than crawling the pages.
 Everything below describes what is in it.
 
 Descriptions are written by hand and capped at 160 characters; nothing here is
@@ -53,7 +53,7 @@ deleted, so the record of what used to exist survives.
 
 ## Data
 
-- [index.json](${base}/index.json): The complete index, CC0. One JSON object per entry with every field.
+- [index.json](${base}/index.json): The complete index, CC BY 4.0. One JSON object per entry with every field; attribution is required.
 - [RSS feed](${base}/rss.xml): The 50 most recently added entries.
 - [Sitemap](${base}/sitemap-index.xml): Every page.
 

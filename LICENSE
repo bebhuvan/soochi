@@ -3,17 +3,21 @@ different things.
 
 ────────────────────────────────────────────────────────────────────────
 THE DATA — everything under src/content/entries/ and the generated
-/index.json — is dedicated to the public domain under CC0 1.0.
+/index.json — is licensed under Creative Commons Attribution 4.0
+International (CC BY 4.0).
 
-    https://creativecommons.org/publicdomain/zero/1.0/
+    https://creativecommons.org/licenses/by/4.0/
 
-To the extent possible under law, the contributors have waived all
-copyright and related or neighbouring rights to this data. You may copy,
-modify, distribute and use it, including for commercial purposes, all
-without asking permission or giving credit.
+You may copy, redistribute, remix, transform and build upon this data,
+including for commercial purposes, provided that you give appropriate
+credit, link to the licence and indicate whether changes were made. A
+suggested attribution is:
 
-Attribution is not required. It is, however, appreciated — and telling us
-what you built is the best way to make the index better.
+    Soochi contributors — https://soochi.fyi
+
+Attribution does not imply that Soochi or its contributors endorse you or
+your use. Telling us what you built is also a welcome way to help improve
+the index.
 
 ────────────────────────────────────────────────────────────────────────
 THE CODE — everything else — is MIT licensed.

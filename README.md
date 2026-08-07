@@ -1,239 +1,155 @@
 # Soochi
 
-A directory of civic organisations, open datasets, tools, publications and
-archives. Static site, no database, no server — every entry is a text file
-in this repository.
+**Good civic work is badly indexed.**
 
-## Running it
+The dataset you need may already exist. So may the organisation that has spent
+years understanding the problem, the tool that would save a month of work, or
+the archive preserving records everyone assumes were lost. Finding them still
+depends too often on knowing someone who already knows.
+
+[Soochi](https://soochi.fyi) is an attempt to write that knowledge down: a
+carefully edited index of civic organisations, datasets, tools, publications,
+archives and communities, with particular depth in India.
+
+[Browse the index](https://soochi.fyi) ·
+[Use the JSON data](https://soochi.fyi/index.json) ·
+[Suggest an entry](https://soochi.fyi/submit) ·
+[Read the contribution guide](CONTRIBUTING.md)
+
+## What makes it an index
+
+Soochi is deliberately not a scraped catalogue of links. Every entry is a small,
+reviewable text file with a human-written description, a controlled vocabulary
+and visible uncertainty.
+
+- **One sentence has to earn the click.** Blurbs are capped at 160 characters,
+  written for a colleague rather than copied from marketing material.
+- **The vocabulary stays small.** Kinds, topics and geographies come from fixed
+  lists. A new term is a schema decision, not an improvised tag.
+- **Unknown is a valid answer.** Unclear licensing is labelled unclear. Broken
+  organisations become dormant or dead instead of disappearing from history.
+- **Projects and parents stay distinct.** A useful dataset can be listed beside
+  the organisation that maintains it without pretending they are the same thing.
+- **The data is the product.** The website is one presentation of a collection
+  designed to remain useful if the framework, host or maintainer changes.
+
+The inclusion bar is usefulness: could a stranger use this to understand or act
+on a public problem without needing an introduction? Consultancies selling into
+the sector, promotional catalogues and inaccessible work generally do not clear
+that bar.
+
+## Use the data
+
+The complete index is published under CC BY 4.0 as CORS-enabled JSON:
+
+```sh
+curl https://soochi.fyi/index.json
+```
+
+Each record includes a stable ID and the editorial fields available for that
+entry. Optional fields are omitted rather than filled with guesses. Three other
+generated surfaces serve different readers:
+
+| Surface | Purpose |
+|---|---|
+| [`index.json`](https://soochi.fyi/index.json) | Canonical machine-readable collection |
+| [`rss.xml`](https://soochi.fyi/rss.xml) | The newest additions |
+| [`llms.txt`](https://soochi.fyi/llms.txt) | Vocabulary and compact entry map for language models |
+| [`sitemap-index.xml`](https://soochi.fyi/sitemap-index.xml) | Every public page for crawlers |
+
+Models and downstream applications should cite the linked primary source, not
+Soochi's summary. The summaries are editorial directions into the work, not a
+replacement for it.
+
+## Contribute
+
+There are three useful contributions: add something missing, correct something
+wrong, or confirm that an uncertain entry is still alive.
+
+- The [site form](https://soochi.fyi/submit) needs no GitHub account. It validates
+  a proposal and opens a pull request; it never publishes directly.
+- GitHub users can open a [new-entry issue](https://github.com/bebhuvan/soochi/issues/new?template=new-entry.yml)
+  or a [correction](https://github.com/bebhuvan/soochi/issues/new?template=correction.yml).
+- Contributors comfortable with Git can add or edit a Markdown file and open a
+  pull request.
+
+The form's optional enrichment step creates a draft, not a verdict. A person can
+edit it, the shared schema validates it and a maintainer still reviews the diff.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the editorial rules and a minimal
+entry example.
+
+## Work on the site
+
+Soochi uses Astro for static pages and Cloudflare Workers for the two submission
+endpoints. There is no application database: entries live in Git and the public
+site is generated from them.
 
 ```sh
 npm install
-npm run dev      # http://localhost:4321
-npm run check    # Astro and TypeScript diagnostics
-npm run build    # static site -> dist/, Worker -> .worker/
+npm run dev             # Astro development server
+npm run check           # content, Astro and TypeScript diagnostics
+npm run build           # static site plus Worker bundle
 npm run preview:worker  # production-like local Worker
 ```
 
-## How it is put together
+The main pieces are intentionally ordinary:
 
-| | |
+| Path | Responsibility |
 |---|---|
-| `src/content/entries/*.md` | One file per entry. Frontmatter is the data. |
-| `src/content.config.ts` | The schema. Enforced at build time — a bad entry fails CI. |
-| `src/taxonomy.ts` | The controlled vocabulary. Adding a term is a deliberate edit. |
-| `src/pages/index.astro` | The index, its filter rail, and the client-side faceting. |
-| `src/pages/index.json.ts` | The whole dataset as one file, CC0. |
-| `src/pages/rss.xml.ts` | The 50 newest entries, for people who want to follow additions. |
-| `src/pages/llms.txt.ts` | A generated map of the site for language models. |
-| `scripts/issue-to-entry.mjs` | Turns a submitted issue form into an entry file. |
+| `src/content/entries/*.md` | One source-controlled file per entry |
+| `src/lib/entry-schema.ts` | Shared Zod schema for builds and submissions |
+| `src/taxonomy.ts` | Controlled kinds, topics, places and status values |
+| `src/pages/index.astro` | Searchable, faceted index |
+| `src/pages/e/[id].astro` | Entry detail pages and structured data |
+| `src/pages/index.json.ts` | Generated public dataset |
+| `functions/api/*.ts` | Draft enrichment and pull-request submission |
+| `public/_headers` | Security, caching and CORS policy |
 
-The data is meant to outlive the site. If you ever want to move off Astro,
-`src/content/entries/` is the product and everything else is presentation.
+The schema is shared by the static build and Worker. A field rejected by the
+site is rejected by the submission endpoint too; there is no parallel validation
+model to drift.
 
-## Adding an entry
+## Submission security
 
-```yaml
----
-name: Open Budgets India
-url: https://openbudgetsindia.org
-blurb: Union, state and municipal budgets as machine-readable data
-kind: dataset            # organisation | dataset | tool | publication
-                         # dashboard | archive | community
-orgType: nonprofit       # optional
-topics: [governance, economy]     # 1–4, from taxonomy.ts
-geography: [india]                # 1+, from taxonomy.ts
-licensing: open                   # optional
-access: free                      # optional
-added: 2026-08-05
-status: live             # live | dormant | dead
----
+The public form can propose repository writes, so its boundaries are intentionally
+narrow:
 
-Anything after the frontmatter is an optional note. See "Known gaps".
-```
+- Cloudflare Turnstile is mandatory and fails closed when misconfigured.
+- Native per-IP rate limits protect both Worker endpoints.
+- The GitHub credential is scoped to this repository and opens a branch and pull
+  request; it cannot merge.
+- Structured model output is constrained by the same enums as the content
+  collection, and uncertain fields may be omitted.
 
-Two rules do most of the work: `blurb` is capped at 160 characters, and
-`topics`/`geography` must come from the fixed vocabulary. Both are enforced
-by the schema, so the index cannot drift into tag soup or paragraph-long
-descriptions without someone consciously changing the rules.
+For local Worker development, copy `.dev.vars.example` to `.dev.vars` and add
+development credentials. Never commit that file. Production requires encrypted
+`ANTHROPIC_API_KEY`, `GITHUB_TOKEN` and `TURNSTILE_SECRET` secrets; repository and
+branch names are configured in `wrangler.jsonc`. A Turnstile site key can be
+provided at build time as `PUBLIC_TURNSTILE_SITE_KEY`.
 
-## The submission tool
+## Deployment and upkeep
 
-`/submit` lets someone add an entry **without a GitHub account or any Git
-knowledge**. Two routes on the Cloudflare Worker back it:
+`npm run deploy` runs diagnostics, builds the static assets and Worker, and
+publishes both through Wrangler. Production uses the custom domains
+`soochi.fyi` and `www.soochi.fyi`.
 
-| | |
-|---|---|
-| `POST /api/enrich` | Takes a URL. Claude reads the page (and searches where the page is thin) and returns a **draft** — name, blurb, kind, topics, geography — for the submitter to correct. It writes nothing. |
-| `POST /api/submit` | Validates, commits an entry file to a new branch, opens a pull request. Never merges. |
+CI validates every change. A scheduled link check reports URLs that stop
+resolving, while entries are marked `dormant` or `dead` through editorial review
+rather than automatically erased. Dependabot keeps the small dependency set
+current.
 
-**The schema is shared, not duplicated.** `src/lib/entry-schema.ts` is
-plain Zod with no Astro imports; `src/content.config.ts` wraps it for the
-build and both functions import it directly. A field the build would
-reject is a field the form rejects, by construction — there is no second
-copy to drift.
+The site favours static HTML, route-scoped JavaScript and simple browser-side
+filtering. The map alone loads Leaflet; ordinary entry and editorial pages ship
+no client framework.
 
-### Setting it up
+## Licence
 
-Deploy with `npm run deploy`, then set these as encrypted Worker secrets
-with `npx wrangler secret put NAME` (or in the Cloudflare dashboard):
+The entries and generated dataset are licensed under
+[Creative Commons Attribution 4.0 International](LICENSE). Reuse and adaptation,
+including commercial use, are welcome with appropriate credit, a licence link and
+an indication of changes. The site code is available under the MIT licence in the
+same file. Contributions are made on that basis, with authorship retained in Git
+history. Linked resources keep their own licences.
 
-| Variable | What |
-|---|---|
-| `ANTHROPIC_API_KEY` | secret — from console.anthropic.com |
-| `GITHUB_TOKEN` | secret — fine-grained PAT or GitHub App token, **scoped to this one repo**, with Contents: read+write and Pull requests: read+write. Nothing else. |
-| `GITHUB_REPO` | `owner/repo` |
-| `GITHUB_BASE_BRANCH` | optional, defaults to `main` |
-| `TURNSTILE_SECRET` | secret — from the Turnstile dashboard |
-| `PUBLIC_TURNSTILE_SITE_KEY` | optional build-time override for preview/staging; production's public site key is committed in the submission page |
-
-The Worker configuration includes native per-IP limits: four enrichments and
-six submissions per minute. Turnstile remains mandatory on both routes.
-
-**Turnstile is not optional.** An open form that writes to a public repo
-will be found. `verifyTurnstile` fails **closed** — if the secret is
-missing, submissions are refused rather than accepted unchecked.
-
-### What the LLM is and isn't allowed to do
-
-It drafts; a human edits; a maintainer reviews the PR. Three things keep
-that honest:
-
-- It is told to **omit** a field rather than guess it — an empty field
-  costs a reviewer nothing, an invented one costs trust in every field.
-- **Structured outputs** with enums generated from `taxonomy.ts`, so an
-  off-vocabulary topic is unrepresentable rather than merely discouraged.
-- It returns a **confidence** level and names the fields it's least sure
-  of; the form shows both and tells the submitter to check everything.
-
-Thinking stays on for the enrichment call. With it disabled the model can
-write a tool call into visible text instead of calling the tool — the
-search silently never runs and the draft gets invented instead of read.
-
-## Contributions
-
-Four paths — the form above, plus three in `.github/`:
-
-1. **Issue form** (`ISSUE_TEMPLATE/new-entry.yml`) — a web form needing no
-   Git knowledge. The `issue-to-pr` workflow parses it, writes the entry
-   file, validates it against the schema, and opens a pull request. If the
-   submission has problems the bot comments on the issue explaining what to
-   fix rather than failing silently.
-2. **Correction form** for dead links and inaccuracies.
-3. **Pull request** for anyone comfortable with Git.
-
-Moderation is the actual work here, and it is deliberately a 30-second
-diff review rather than a dashboard.
-
-## Upkeep
-
-`link-check.yml` runs lychee every Monday and opens a single issue listing
-anything that stopped resolving. Link rot, not code, is what kills
-directories. Entries that die are marked `dormant` then `dead` rather than
-deleted — they stay in `index.json`, and `dead` ones are hidden from the
-site.
-
-## Before the first deploy
-
-- [x] Canonical domain, sitemap, robots and social metadata use `soochi.fyi`
-- [x] Worker Static Assets, API routing, headers and rate limits are configured
-- [x] The social card and visible identity use Soochi
-- [ ] Create or connect `github.com/bebhuvan/soochi`
-- [ ] Set the five production variables/secrets listed above
-- [ ] Create a Turnstile widget for `soochi.fyi` and build with its public key
-- [ ] Verify the entries listed by `npm run unverified`
-- [ ] Run `npm run deploy`, then test both submission routes on the real domain
-
-## What ships
-
-| | |
-|---|---|
-| JS on `/about`, `/e/*` | No framework/runtime; only the small theme control |
-| JS on `/` | Small inline filtering and theme controls |
-| JS on `/map` | 44 KB gzipped (Leaflet, route-scoped) |
-| Fonts | Latin subset only per visit; `unicode-range` handles the rest |
-| Pages | 68, all static |
-
-SEO: per-page canonical, Open Graph and Twitter cards with a real
-`og.png`, a sitemap with per-section `changefreq`, `robots.txt`, and
-JSON-LD — `CollectionPage` + `ItemList` on the index, and a typed
-`Organization` / `Dataset` / `SoftwareApplication` plus `BreadcrumbList`
-on each entry page.
-
-### Machine-readable surfaces
-
-Four, all generated from the collection so none can drift from it:
-
-| | |
-|---|---|
-| `/index.json` | The canonical dataset. CC0, CORS-open, every field. |
-| `/rss.xml` | The 50 newest entries, ordered by when they were added — a directory's feed is "what did you find that I haven't seen". |
-| `/llms.txt` | A map for language models: the vocabulary, the pages, and every entry in one line each. It leads with `index.json`, because for a directory the right answer to "what is here" is the dataset, not a crawl of the HTML. |
-| `/sitemap-index.xml` | Every page. |
-
-`llms.txt` ends with an accuracy note telling models to cite the linked
-source rather than this index — descriptions here are editorial summaries,
-not quotations, and a model reproducing them as fact would be wrong.
-
-Security and caching live in `public/_headers`: a CSP restricted to the
-map-tile and Turnstile origins, immutable caching for hashed assets, and
-a short cache with CORS on `/index.json` so people can script against it.
-
-## Entry pages
-
-Every entry gets a page at `/e/<id>`. The index row opens it; the small
-arrow on the row goes straight to the site for people who only want the
-link. The page renders whatever optional fields the entry has —
-`people`, `contact`, `links`, `founded`, `location` — plus the prose
-after the frontmatter, and shows nothing where there is nothing.
-
-`links` is a labelled list rather than one field per platform, so adding
-a YouTube channel, a Mastodon account or an API doc never needs a schema
-change.
-
-## Known gaps
-
-- Thirty-eight entries still need a source check. Their pages say so rather
-  than presenting unverified summaries as settled fact.
-- Client-side filtering is intentionally simple and dependency-free. Replace
-  it with a search index only when the collection outgrows one document.
-
-## The map
-
-`/map` plots entries that have `location.lat` / `location.lng`. Leaflet
-with CARTO raster tiles over OpenStreetMap data, basemap switching with
-the theme, markers tinted by kind.
-
-It shows **where organisations are based, not where their work applies** —
-those are different questions and the page says so. Entries with no single
-place (OpenStreetMap, a collective) deliberately have no coordinates and
-do not appear; the page states how many are missing rather than quietly
-showing a partial picture.
-
-Locations are **city-level**, so several Delhi organisations share one
-coordinate. Coincident entries become a single marker carrying a count
-whose popup lists them all — nudging them apart would invent a precision
-the data does not have.
-
-Speed, and why it is contained:
-
-| page | JS shipped (gzipped) |
-|---|---|
-| `/` | dependency-free inline filtering |
-| `/about`, `/e/*` | theme control only |
-| `/map` | 44 KB |
-
-Leaflet is bundled per-route, so the map's weight never touches the index.
-Leaflet (~44 KB) over MapLibre GL (~200 KB+) because raster tiles need no
-WebGL and no vector tile pipeline. Retina tiles are off — four times the
-bytes for a basemap this plain. Scroll-zoom only engages after you click
-into the map, so the page still scrolls normally past it.
-
-Markers are DOM nodes (`divIcon`), which is fine into the low hundreds.
-Past that, add `leaflet.markercluster` rather than switching renderer.
-
-**Tile terms:** CARTO basemaps are free for low volume with attribution,
-which is present. At real traffic, self-host tiles (Protomaps `.pmtiles`
-is the cheap route) rather than leaning on someone else's CDN.
-
-**Coordinates need checking.** They were written from memory at city
-level, like the blurbs. Five entries have none.
+Soochi means an index. The ambition is modest: make worthwhile work a little
+less dependent on already knowing where to look.

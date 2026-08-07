@@ -11,7 +11,7 @@ export const GET: APIRoute = async () => {
 
   const body = {
     name: 'Soochi',
-    license: 'CC0-1.0',
+    license: 'CC-BY-4.0',
     generated: null as string | null,
     count: entries.length,
     entries: entries

@@ -34,7 +34,7 @@ const baseSchema = {
   name: SITE,
   url: Astro.site?.toString(),
   description,
-  license: 'https://creativecommons.org/publicdomain/zero/1.0/',
+  license: 'https://creativecommons.org/licenses/by/4.0/',
   potentialAction: {
     '@type': 'SearchAction',
     target: { '@type': 'EntryPoint', urlTemplate: `${Astro.site}?q={search_term_string}` },
@@ -83,7 +83,7 @@ const FOOTER = [
       { href: '/index.json', label: 'index.json' },
       { href: '/rss.xml', label: 'RSS' },
       { href: '/llms.txt', label: 'llms.txt' },
-      { href: 'https://github.com/bebhuvan/soochi', label: 'Source' },
+      { href: 'https://github.com/bebhuvan/soochi', label: 'GitHub repository' },
     ],
   },
 ]
@@ -198,9 +198,10 @@ const FOOTER = [
       {/* A colophon, not a copyright line: the licence is the useful fact
           and the typefaces are the only other thing worth saying. */}
       <p class="colophon">
-        Entries are in the public domain under
-        <a href="https://creativecommons.org/publicdomain/zero/1.0/" rel="license"> CC0</a>;
-        the code is MIT. Set in Public Sans and Source Serif 4.
+        Entries are licensed under
+        <a href="https://creativecommons.org/licenses/by/4.0/" rel="license"> CC BY 4.0</a>;
+        the <a href="https://github.com/bebhuvan/soochi">code is MIT</a>.
+        Set in Public Sans and Source Serif 4.
       </p>
     </footer>
 

@@ -1,7 +1,7 @@
 ---
 name: "Carbon Brief"
 url: "https://www.carbonbrief.org/"
-blurb: "UK-based climate science, policy, and energy news site — data-driven explainers, fact-checks, and analysis that set the standard for climate journalism worldwide"
+blurb: "UK-based climate science and policy news site — data-driven explainers, fact-checks, and analysis that set the standard for climate journalism worldwide"
 kind: publication
 orgType: nonprofit
 topics: ["climate", "energy", "environment", "media"]

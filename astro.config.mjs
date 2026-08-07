@@ -7,7 +7,7 @@ const SITE = 'https://soochi.fyi'
 export default defineConfig({
   site: SITE,
   trailingSlash: 'never',
-  build: { format: 'directory' },
+  build: { format: 'directory', inlineStylesheets: 'always' },
   compressHTML: true,
   integrations: [
     sitemap({

@@ -1,7 +1,7 @@
 ---
 name: "Quartz"
 url: "https://quartz.jzhao.xyz/"
-blurb: "Fast, batteries-included static site generator that turns Markdown folders into fully functional websites — the standard for publishing digital gardens and personal knowledge bases"
+blurb: "Batteries-included static site generator turning Markdown folders into websites — the standard for publishing digital gardens and knowledge bases"
 kind: tool
 orgType: individual
 topics: ["technology", "education"]

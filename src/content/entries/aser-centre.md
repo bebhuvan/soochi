@@ -17,3 +17,5 @@ location:
   lat: 28.6139
   lng: 77.2090
 ---
+
+ASER (Annual Status of Education Report) is India's largest citizen-led household survey, reaching over 600,000 children across nearly every rural district. Unlike school-leaving exams, ASER tests basic reading and arithmetic — and the results, consistently sobering, have reshaped India's education policy debate for two decades. The survey is unusual in being conducted by volunteers (mostly college students) rather than professional enumerators, which gives it both scale and public engagement that top-down surveys lack. ASER Centre also runs the ASER-based assessment tools used by several state governments. If you need to know whether Indian children are actually learning — as opposed to just being enrolled — this is the indispensable source.

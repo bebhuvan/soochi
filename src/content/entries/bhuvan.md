@@ -16,5 +16,4 @@ retrieval:
   apiUrl: https://bhuvan-app1.nrsc.gov.in/api/
 ---
 
-Often the only free source for Indian thematic layers — land use, wasteland,
-flood hazard — that would otherwise mean commercial imagery.
+Bhuvan is ISRO's geoportal — India's answer to Google Earth, built and operated by the National Remote Sensing Centre. It provides satellite imagery (from Indian remote sensing satellites including Resourcesat, Cartosat, and Oceansat), thematic map layers (land use/land cover, wasteland, groundwater, geomorphology, soil, forest cover), and administrative boundaries. For researchers, Bhuvan offers several unique assets: archive imagery going back decades (useful for change detection), high-resolution Cartosat data (up to 0.6 m), and domain-specific portals (Bhuvan-WRIS for water, Bhuvan-Panchayat for local governance, Bhuvan-Urban for cities). Many layers are exposed as OGC-compliant web services. The NRSC Open Earth Observation Data Archive (NOEDA) provides free orthorectified imagery.

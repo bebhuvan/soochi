@@ -13,5 +13,4 @@ added: 2026-08-06
 status: live
 ---
 
-Parliamentary answers are often the only place a ministry states a number
-publicly, which makes the Q&A archive a data source in its own right.
+Digital Sansad is the official digital platform of the Indian Parliament, providing access to the complete legislative record: questions and answers (Lok Sabha and Rajya Sabha), debates (verbatim proceedings), bills (text, status, committee reports), and member profiles. For researchers and journalists, Parliamentary questions are an invaluable data source — MPs ask detailed questions about government programmes and the ministries are required to provide factual answers, making them a free, high-quality source of official statistics that are often not published elsewhere. The debates provide the legislative history and political context for every law passed. The platform replaced the older Lok Sabha and Rajya Sabha websites with a unified interface.

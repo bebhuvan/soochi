@@ -17,5 +17,4 @@ location:
   lng: 77.5946
 ---
 
-The mailing list is the fastest way to find out whether an Indian
-dataset you need already exists somewhere.
+DataMeet is a community of data enthusiasts, researchers, and civic technologists who work on making Indian public data more accessible and usable. They run meetups, workshops, and hackathons across Indian cities, and maintain a repository of cleaned and structured Indian datasets — often taking messy government data and making it analysis-ready. For anyone getting started with Indian public data, DataMeet is the community to connect with: the members know where to find data, how to clean it, and what its limitations are. The community is volunteer-run, open to all, and operates primarily through its Google Group, GitHub repositories, and in-person events.

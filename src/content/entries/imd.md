@@ -13,5 +13,4 @@ added: 2026-08-06
 status: live
 ---
 
-The reference series for Indian monsoon and rainfall work, and the source
-cyclone and heatwave warnings are issued from.
+The India Meteorological Department (IMD) is the national weather agency and the authoritative source for Indian weather and climate data. Its public portal provides daily weather observations, district-level rainfall statistics, cyclone warnings, monsoon progress tracking, seasonal forecasts, heatwave alerts, and long-period average (LPA) rainfall data. For researchers, the most important resources are the gridded rainfall and temperature datasets (0.25° resolution, 1901-present), which underpin most Indian climate research. IMD also publishes annual monsoon reports, district-wise rainfall summaries, and severe weather event documentation. Some datasets require registration or purchase; the gridded datasets are available through IMD Pune's data portal.

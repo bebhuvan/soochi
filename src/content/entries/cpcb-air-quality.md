@@ -13,6 +13,4 @@ added: 2026-08-06
 status: live
 ---
 
-The official source behind most Indian air quality reporting. Station
-coverage is uneven outside the big cities, which matters when comparing
-places.
+The CPCB (Central Pollution Control Board) Air Quality portal provides live and historical air quality data from India's Continuous Ambient Air Quality Monitoring Stations (CAAQMS). It displays the National Air Quality Index (AQI) — a composite measure of PM2.5, PM10, NO₂, SO₂, CO, O₃, and NH₃ — for 250+ cities across India. For researchers, the portal provides the only official real-time air quality data, though coverage is concentrated in urban areas and data availability can be inconsistent. The historical data can be downloaded for individual stations. For programmatic access and research-grade data, OpenAQ (which aggregates CPCB data) is often easier to work with.

@@ -13,5 +13,4 @@ added: 2026-08-06
 status: live
 ---
 
-The statistical reports published after each election carry the
-constituency-level detail that news coverage does not.
+The Election Commission of India's data portal is one of the most comprehensive electoral data resources in the world. It publishes full results for every Lok Sabha and Vidhan Sabha election (candidate votes, party totals, constituency maps), electoral rolls with demographic breakdowns, candidate affidavits (assets, criminal cases, education), and detailed statistical reports on voter turnout by gender, age, and constituency. For researchers, the ECI data enables analysis of electoral behaviour, party system change, money in politics, and representation over multiple decades. The candidate affidavit data alone has supported hundreds of academic papers and investigative journalism projects. Most data is available as downloadable PDFs and CSVs.

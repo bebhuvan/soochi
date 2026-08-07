@@ -21,5 +21,4 @@ retrieval:
   apiUrl: https://docs.owid.io/projects/etl/api/
 ---
 
-The standard for how to publish public-interest data: the chart, the
-data behind it, and the provenance are always one click apart.
+Our World in Data (OWID), based at the University of Oxford, is one of the most important public data resources of the modern era. It takes complex global datasets — from the UN, World Bank, WHO, and academic research — and presents them as clear, interactive charts with thorough methodological notes. For India, OWID provides pre-processed, ready-to-use data on nearly every development topic: poverty, health, education, energy, environment, and demographics. What makes OWID special is that every chart links to the underlying data (downloadable as CSV) and the original source, making it both a discovery tool and a reliable citation chain. The entire platform is open-source and all data is CC BY licensed.

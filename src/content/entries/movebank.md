@@ -14,5 +14,4 @@ retrieval:
   apiUrl: https://github.com/movebank/movebank-api-doc
 ---
 
-Found via env.wiki. Licensing varies per study — each data owner sets
-their own terms, so check the individual study before reusing anything.
+Movebank is a global online database of animal tracking data, hosted by the Max Planck Institute of Animal Behavior. It archives movement data from studies of birds, mammals, fish, and other animals — collected through GPS tags, satellite telemetry, radio tracking, and other methods. For Indian researchers, Movebank hosts tracking data for species ranging from Amur falcons and bar-headed geese to elephants and snow leopards, much of it contributed by Indian research institutions. The data is accessible through a web interface and API, with options for public, embargoed, and restricted access levels.

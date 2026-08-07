@@ -18,6 +18,4 @@ location:
   lng: 77.2090
 ---
 
-The reference point for what Parliament is actually doing. Their bill
-trackers and budget explainers are the fastest route into Indian
-legislative process.
+PRS Legislative Research is India's premier independent legislative research institution. It tracks every bill introduced in Parliament, publishes detailed legislative briefs analysing proposed laws, provides MP and MLA performance data (attendance, questions asked, debates participated in), and maintains a searchable archive of legislation. For researchers and journalists, PRS is indispensable — their bill summaries and analysis are often the most accessible explanation of complex legislation. The MP track tool is widely used for evaluating parliamentary performance. PRS also produces state-level legislative analysis and budget briefs.

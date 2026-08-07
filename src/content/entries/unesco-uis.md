@@ -15,3 +15,5 @@ retrieval:
   api: true
   apiUrl: https://api.uis.unesco.org/api/public/documentation/
 ---
+
+The UNESCO Institute for Statistics is the official global source for education statistics. For India, it provides comparable data on school enrolment rates (primary, secondary, tertiary), completion rates, literacy, education expenditure as a share of GDP, pupil-teacher ratios, and gender parity indices. The key advantage over India's own education statistics (UDISE+, AISHE) is cross-country comparability: UIS data applies consistent definitions across 200+ countries, so you can reliably compare India's education indicators with other countries. The database also covers science, technology, innovation, and culture statistics. Free API and bulk download access.

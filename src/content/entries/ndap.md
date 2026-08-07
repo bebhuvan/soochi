@@ -15,6 +15,4 @@ retrieval:
   api: false
 ---
 
-The pitch is joinability rather than volume: datasets are re-cut to
-consistent administrative units and time periods, which is the work that
-usually eats the first week of any analysis.
+NITI Aayog's National Data & Analytics Platform (NDAP) is probably the most useful Indian data resource that is still not nearly well-known enough. It brings together datasets from across the government — agriculture, health, education, infrastructure, demography, economy — into a single platform with consistent formatting, a unified search interface, and built-in visualisation tools. For researchers, NDAP dramatically reduces the time spent finding, downloading, cleaning, and merging datasets from different ministries. The platform allows side-by-side comparison of indicators across states and districts, and supports data downloads in multiple formats. NDAP represents the government's most serious attempt to bridge the gap between publishing data and making it actually usable.

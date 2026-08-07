@@ -23,6 +23,4 @@ links:
 verifiedAt: 2026-08-06
 ---
 
-The browser edition is a static application with no account or analytics;
-local data is processed in the browser unless the user deliberately connects
-to a remote source or shares a project.
+GeoLibre is a community-driven platform providing free and open geospatial data, tools, and resources for India. It hosts shapefiles, geojson files, and spatial datasets contributed by the Indian geospatial community — including administrative boundaries, infrastructure layers, and environmental data that are often hard to find or expensive through official channels. For civic technologists and researchers, GeoLibre fills a critical gap: while the Survey of India provides official products, GeoLibre offers community-curated, ready-to-use spatial data that is free of cost and licensing restrictions.

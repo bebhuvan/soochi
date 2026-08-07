@@ -427,6 +427,13 @@ a { color: inherit; }
   /* A scrollbar track running parallel to the column rule read as a
      seam. The fade at the bottom edge signals the overflow instead. */
   scrollbar-width: none;
+  /* Scrolling clips to the padding box, and the kind dots sit flush
+     against the content edge — so without this the dot loses a sliver of
+     its left side the moment it grows on hover. Equal padding and
+     negative margin move the clip outward while the grid track, and
+     everything measured from it, stays exactly where it was. */
+  padding-inline: 4px;
+  margin-inline: -4px;
   padding-bottom: 1.5rem;
   mask-image: linear-gradient(to bottom, #000 calc(100% - 2.5rem), transparent 100%);
 }
@@ -482,8 +489,9 @@ a { color: inherit; }
 }
 
 /* The search field's own underline already opens the rail; a second rule
-   25px below it just framed an empty strip. */
-.facet-groups .facet:first-child h2 {
+   25px below it just framed an empty strip. `first-of-type` rather than
+   `first-child` because the reset button now precedes the groups. */
+.facet-groups .facet:first-of-type h2 {
   border-top: 0;
   padding-top: 0;
 }
@@ -649,20 +657,58 @@ a { color: inherit; }
 .facet[data-group='kind'] button[data-empty] .dot { background: var(--ink-muted); }
 
 
-/* The Kind group's bars are the legend: each one is the same hue as the
-   chip dot on every entry of that kind. Every other group stays neutral,
-   so hue on this page only ever means "kind". */
-.facet[data-group='kind'] button[aria-pressed='true'] { color: var(--ink); }
-.facet[data-group='kind'] button[aria-pressed='true'] .count { color: var(--ink); }
-
 .facet button:hover { color: var(--ink); }
+
+/*
+  Facets are a multi-select, and within a group the terms are OR'd — so
+  clicking a second kind WIDENS the result. Click through four of them
+  and the list grows back towards everything, which reads as "the filter
+  is broken" unless the rail states plainly which terms are still on.
+  A shade of grey and a little extra weight was not stating it.
+*/
+.facet button {
+  --mark: var(--accent);
+}
 
 .facet button[aria-pressed='true'] {
   color: var(--accent);
   font-weight: 600;
 }
 
+/* A rule under the row, not a block behind it. A filled band is the one
+   gesture this rail had avoided everywhere else — it reads as highlighter
+   over a column set with dot leaders, and at eight kinds it puts eight
+   saturated swatches on the page. An underscore marks the line the way
+   the rest of the page marks things, and it is drawn on a pseudo-element
+   so a selection never changes the height of a row. */
+.facet button[aria-pressed='true']::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0.16rem;
+  block-size: 1.5px;
+  border-radius: 1px;
+  background: var(--mark);
+}
+
 .facet button[aria-pressed='true'] .count { color: var(--accent); }
+
+/* Kind is the legend: its dot is the same hue as the chip on every entry
+   of that kind, so a selected kind marks in its own hue instead of
+   borrowing the accent. Hue on this page still only ever means "kind". */
+.facet[data-group='kind'] button {
+  --mark: var(--k);
+}
+
+.facet[data-group='kind'] button[aria-pressed='true'] { color: var(--ink); }
+.facet[data-group='kind'] button[aria-pressed='true'] .count { color: var(--ink); }
+.facet[data-group='kind'] button[aria-pressed='true'] .leader { color: var(--k); opacity: 1; }
+
+/* No halo on the selected dot, tempting as it is: the dot sits in a 6px
+   column flush against the rail's left edge, and the rail scrolls, so
+   `overflow-x` is `auto` and anything drawn outside that edge is clipped
+   to a flat side. The underscore, the ink label and the solid leader
+   mark the row three times over without reaching outside the box. */
 
 /* Facets that would return nothing recede rather than vanish, so the
    vocabulary stays visible and the list never jumps under the cursor. */
@@ -684,21 +730,27 @@ a { color: inherit; }
   color: var(--ink);
 }
 
+/*
+  The only way out of an accumulated selection, so it sits above the
+  vocabulary rather than below all six groups, where a scrolled rail
+  could hide it entirely. It names the count because "clear all filters"
+  never told you that three were on.
+*/
 .reset {
   justify-self: start;
   font-family: inherit;
   font-size: 0.75rem;
-  color: var(--ink-muted);
+  font-weight: 550;
+  color: var(--ink);
   background: none;
-  border: 0;
-  padding: 0;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: 0.4rem 0.65rem;
   cursor: pointer;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  text-decoration-color: var(--rule);
+  transition: color 0.15s var(--ease), border-color 0.15s var(--ease);
 }
 
-.reset:hover { color: var(--ink); }
+.reset:hover { color: var(--accent); border-color: var(--accent); }
 .reset[hidden] { display: none; }
 
 /* ── Entries ──────────────────────────────────────────────────────── */
@@ -1976,7 +2028,10 @@ a { color: inherit; }
   /* Leaders only make sense in a column with a right edge to run to. */
   .facet .leader { display: none; }
 
-  .facet button[aria-pressed='true'] { border-color: var(--accent); }
+  /* These are already bordered chips, so the border carries the mark and
+     the underscore would only draw a second line inside the first. */
+  .facet button[aria-pressed='true'] { border-color: var(--mark); }
+  .facet button[aria-pressed='true']::after { display: none; }
   .facet .count { margin-left: 0; }
 }
 

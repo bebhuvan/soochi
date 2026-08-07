@@ -177,6 +177,11 @@ const schema = {
       </button>
 
       <div class="facet-groups" id="facet-groups">
+        {/* Above the vocabulary, not below it: selections accumulate, and
+            the rail scrolls, so the way out has to be where the clicking
+            happens rather than past six groups of terms. */}
+        <button class="reset" type="button" hidden>Clear all filters</button>
+
         {facets.map((g) => (
           <div class="facet" data-group={g.key}>
             <h2 id={`facet-${g.key}`}>{g.heading}</h2>
@@ -200,8 +205,6 @@ const schema = {
             </ul>
           </div>
         ))}
-
-        <button class="reset" type="button" hidden>Clear all filters</button>
       </div>
     </form>
 
@@ -474,7 +477,18 @@ const schema = {
     const filtering = state.q !== '' || active > 0
     emptyMsg.hidden = visible.length > 0
     search.toggleAttribute('data-filled', state.q !== '')
-    for (const b of resetButtons) b.hidden = !filtering
+
+    /* Say how many terms are on. Within a group the terms are OR'd, so
+       three selections is a wider result than one — "clear all filters"
+       left that count invisible, and a wide result then looks like a
+       filter that did nothing. */
+    const resetLabel = active
+      ? `Clear ${active} filter${active === 1 ? '' : 's'}${state.q ? ' and search' : ''}`
+      : 'Clear search'
+    for (const b of resetButtons) {
+      b.hidden = !filtering
+      b.textContent = resetLabel
+    }
     ftCount.textContent = String(active)
     ftCount.hidden = active === 0
     live.textContent = `${visible.length} ${visible.length === 1 ? 'entry' : 'entries'}`

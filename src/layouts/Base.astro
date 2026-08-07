@@ -1,10 +1,12 @@
 ---
 import '../styles/global.css'
 
-// Imported for their built URLs so the two faces used above the fold can
-// be preloaded. Without this the first paint is unstyled text that
-// reflows once the fonts land.
-import uiFont from '@fontsource-variable/public-sans/files/public-sans-latin-wght-normal.woff2?url'
+// The serif is the headline face and the one Largest Contentful Paints
+// on (the masthead wordmark and the statement use --font-text). Preload
+// it so that text renders in its real face on the first paint. Public
+// Sans — the UI face for nav, chips, labels — is not on the LCP path and
+// falls back to system-ui gracefully, so we let the CSS discover it
+// instead of pulling another client 26 KB into the critical tree.
 import textFont from '@fontsource-variable/source-serif-4/files/source-serif-4-latin-wght-normal.woff2?url'
 
 interface Props {
@@ -108,8 +110,7 @@ const FOOTER = [
     />
     <link rel="alternate" type="application/rss+xml" href="/rss.xml" title="Soochi — new entries" />
 
-    <link rel="preload" href={uiFont} as="font" type="font/woff2" crossorigin />
-    <link rel="preload" href={textFont} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={textFont} as="font" type="font/woff2" crossorigin fetchpriority="high" />
 
     <meta property="og:site_name" content={SITE} />
     <meta property="og:title" content={fullTitle} />

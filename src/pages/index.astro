@@ -20,6 +20,49 @@ const shown = all
       }),
   )
 
+/* The index is one of the heaviest pages on the site: every entry is a
+   server-rendered row, and the search needs all of them in the DOM at
+   once. Shipping ~470 KB of row markup costs real first-paint time on
+   slow connections, so only the first `INITIAL_ROWS` are rendered here —
+   enough to fill the fold for people who never run the search script.
+   The rest are sent once, as compact JSON, and built by the client before
+   the search indexes the list. No-JS readers lose rows beyond the fold;
+   everyone else gets the full index at a fraction of the weight. */
+const INITIAL_ROWS = 16
+const first = shown.slice(0, INITIAL_ROWS)
+const rest = shown.slice(INITIAL_ROWS)
+
+/* The rows travel as data, not markup. Only the fields the client cannot
+   reconstruct are sent: everything else — labels, search text — is derived
+   from the small `groups` payload below, sent once instead of inside every
+   row. */
+const groups = {
+  k: KINDS,
+  t: TOPICS,
+  g: GEOGRAPHIES,
+  s: STATUSES,
+}
+
+const rowPayload = (e: (typeof shown)[number]) => {
+  const d = e.data
+  return {
+    i: e.id,
+    n: d.name,
+    b: d.blurb,
+    u: d.url,
+    k: d.kind,
+    t: d.topics.join('|'),
+    g: d.geography.join('|'),
+    an: d.alternateNames.join('|'),
+    o: d.orgType ?? '',
+    l: d.licensing ?? '',
+    a: d.access ?? '',
+    s: d.status,
+  }
+}
+
+const restJSON = JSON.stringify({ groups, rows: rest.map(rowPayload) }).replace(/</g, '\\u003c')
+
 /**
  * Facet groups, in rail order. Only values actually in use are listed —
  * with thirty topics and forty-four places, showing the whole vocabulary
@@ -212,7 +255,7 @@ const schema = {
       <p class="sr" aria-live="polite" data-live></p>
 
       <ul class="entries">
-        {shown.map((e, i) => {
+        {first.map((e, i) => {
           const d = e.data
           const labels = [
             KINDS[d.kind],
@@ -275,6 +318,11 @@ const schema = {
         })}
       </ul>
 
+      {/* The rows below the fold are carried here as data rather than
+          markup. Building them in the script below is a few hundred
+          microseconds; shipping them as HTML is half a megabyte. */}
+      <script is:inline type="application/json" id="entry-data" set:html={restJSON} />
+
       {/* "Nothing matches" is exactly when someone needs to be told where
           else to look. The link is derived from the index rather than a
           hand-kept list, so it cannot go stale. */}
@@ -303,6 +351,116 @@ const schema = {
   const filtersToggle = document.querySelector('.filters-toggle') as HTMLButtonElement
   const ftCount = document.querySelector('.ft-count') as HTMLElement
   const listEl = document.querySelector('.entries') as HTMLUListElement
+
+  /* The rows beyond the fold arrive as JSON (see #entry-data). Build them
+     into the list before the search below indexes `.entry` elements, so
+     the whole directory is searchable rather than just the fold. */
+  type Row = {
+    i: string
+    n: string
+    b: string
+    u: string
+    k: string
+    t: string
+    g: string
+    an: string
+    o: string
+    l: string
+    a: string
+    s: string
+  }
+
+  const dataEl = document.getElementById('entry-data')
+  if (dataEl) {
+    const payload = JSON.parse(dataEl.textContent ?? '{"groups":{},"rows":[]}') as {
+      groups: { k: Record<string, string>; t: Record<string, string>; g: Record<string, string>; s: Record<string, string> }
+      rows: Row[]
+    }
+    const split = (v: string) => (v ? v.split('|').filter(Boolean) : [])
+    const statusLabel = (s: string) =>
+      s !== 'live' ? payload.groups.s[s] ?? '' : ''
+
+    for (const d of payload.rows) {
+      const topics = split(d.t)
+      const geos = split(d.g)
+      const kindLabel = payload.groups.k[d.k]
+      const searchLabels = [
+        kindLabel,
+        ...topics.map((t) => payload.groups.t[t] ?? ''),
+        ...geos.map((g) => payload.groups.g[g] ?? ''),
+      ]
+      const dataText = [d.n, ...split(d.an), d.b, ...searchLabels]
+        .join(' ')
+        .toLowerCase()
+
+      const li = document.createElement('li')
+      li.className = 'entry'
+      li.style.setProperty('--i', '0')
+      li.dataset.status = d.s
+      const sl = statusLabel(d.s)
+      if (sl) li.dataset.statusLabel = sl
+      li.dataset.kind = d.k
+      li.dataset.topics = d.t
+      li.dataset.geography = d.g
+      li.dataset.orgType = d.o
+      li.dataset.licensing = d.l
+      li.dataset.access = d.a
+      li.dataset.name = d.n.toLowerCase()
+      li.dataset.text = dataText
+
+      const link = document.createElement('a')
+      link.className = 'entry-link'
+      link.href = `/e/${d.i}`
+
+      const head = document.createElement('span')
+      head.className = 'head'
+      const name = document.createElement('span')
+      name.className = 'name'
+      if (sl) name.dataset.statusLabel = sl
+      name.textContent = d.n
+      head.append(name)
+      link.append(head)
+
+      const blurb = document.createElement('p')
+      blurb.className = 'blurb'
+      blurb.textContent = d.b
+      link.append(blurb)
+
+      const facets = document.createElement('p')
+      facets.className = 'facets'
+      const chips = [
+        ['chip chip--kind', kindLabel ?? ''],
+        ['chip', topics.length ? payload.groups.t[topics[0]] ?? '' : ''],
+        ['chip', geos.map((g) => payload.groups.g[g] ?? '').join(', ')],
+      ]
+      for (const [cls, label] of chips) {
+        const span = document.createElement('span')
+        span.className = cls
+        span.textContent = label
+        facets.append(span)
+      }
+      link.append(facets)
+      li.append(link)
+
+      const out = document.createElement('a')
+      out.className = 'out'
+      out.href = d.u
+      out.rel = 'noopener'
+      out.title = `Go straight to ${d.n}`
+      const sr = document.createElement('span')
+      sr.className = 'sr'
+      sr.textContent = `Go straight to ${d.n}`
+      out.append(sr)
+      out.insertAdjacentHTML(
+        'beforeend',
+        '<svg viewBox="0 0 10 10" fill="none" aria-hidden="true"><path d="M1.6 8.4 8.4 1.6M3.4 1.6h5v5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      )
+      li.append(out)
+
+      listEl.append(li)
+    }
+    dataEl.remove()
+  }
 
   filtersToggle.addEventListener('click', () => {
     const open = rail.toggleAttribute('data-open')

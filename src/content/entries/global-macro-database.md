@@ -1,7 +1,7 @@
 ---
 name: "Global Macro Database"
 url: "https://www.globalmacrodata.com/"
-blurb: "The most comprehensive harmonised macroeconomic dataset — 46 variables, 239 countries, 160 sources, from 1086 to present with forecasts, free for academic and nonprofit research"
+blurb: "Harmonised macroeconomic dataset — 46 variables, 239 countries, 160 sources, from 1086 to present with forecasts, free for academic and nonprofit research"
 kind: dataset
 orgType: academic
 topics: ["economy", "public-finance"]

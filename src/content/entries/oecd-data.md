@@ -1,6 +1,6 @@
 ---
-name: OECD Data Explorer
-url: https://data-explorer.oecd.org
+name: OECD Data
+url: https://www.oecd.org/en/data.html
 blurb: OECD statistics across economy, environment, health, education and public governance, with non-member countries including India
 kind: dataset
 orgType: multilateral
@@ -14,6 +14,9 @@ status: live
 retrieval:
   api: true
   apiUrl: https://www.oecd.org/en/data/insights/data-explainers/2024/09/api.html
+links:
+  - label: "OECD Data Explorer"
+    url: "https://data-explorer.oecd.org"
 ---
 
 India is not a member, but appears in many series as a key partner

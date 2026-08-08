@@ -560,29 +560,22 @@ a { color: inherit; }
   padding: 0;
 }
 
-/*
-  Sub-headings inside a long facet. Thirty topics as one flat run is the
-  failure this vocabulary was redesigned to avoid — nobody scans that far
-  — so the rail labels the runs. Purely visual: the entry still carries a
-  flat term.
-*/
-/* Deliberately NOT the uppercase-and-tracked treatment the facet heading
-   above it uses. Two levels distinguished only by a pixel of size and a
-   shade of grey read as siblings, which made "People" look like a topic
-   called People rather than a heading over one. Changing case does the
-   work that size alone could not. */
-.facet li[data-sub]::before {
-  content: attr(data-sub);
-  display: block;
-  margin: 1.125rem 0 0.375rem;
+/* Sub-headings inside a long facet. They are real blocks rather than
+   pseudo-elements on individual terms, so the mobile chip layout cannot
+   treat a heading as one of the chips. */
+.facet-subgroups {
+  display: grid;
+  gap: 1.125rem;
+}
+
+.facet-subgroup h3 {
+  margin: 0 0 0.375rem;
   font-size: 0.75rem;
   font-weight: 500;
   letter-spacing: 0;
   text-transform: none;
   color: var(--ink-muted);
 }
-
-.facet li:first-child[data-sub]::before { margin-top: 0; }
 
 /*
   Label, dot leader, count — the way a printed index has always set this

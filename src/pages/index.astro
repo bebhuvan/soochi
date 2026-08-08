@@ -110,7 +110,10 @@ const facets = GROUPS.map((g) => {
   const grouped = subs.length > 1
 
   const max = Math.max(1, ...values.map((v) => v.count))
-  return { ...g, values, max, grouped }
+  const subgroups = grouped
+    ? subs.map((sub) => ({ sub, values: values.filter((v) => v.sub === sub) }))
+    : []
+  return { ...g, values, max, grouped, subgroups }
 })
   // A facet with a single value is a filter with nothing to choose
   // between — it only ever narrows to what you already see.
@@ -228,24 +231,52 @@ const schema = {
         {facets.map((g) => (
           <div class="facet" data-group={g.key}>
             <h2 id={`facet-${g.key}`}>{g.heading}</h2>
-            <ul aria-labelledby={`facet-${g.key}`}>
-              {g.values.map((v, i) => (
-                <li data-sub={g.grouped && v.sub !== g.values[i - 1]?.sub ? v.sub : undefined}>
-                  <button
-                    type="button"
-                    aria-pressed="false"
-                    data-value={v.value}
-                    data-kind={g.key === 'kind' ? v.value : undefined}
-                    style={`--share:${Math.round((v.count / g.max) * 100)}%`}
-                  >
-                    {g.key === 'kind' && <span class="dot" aria-hidden="true" />}
-                    <span class="label">{v.label}</span>
-                    <span class="leader" aria-hidden="true" />
-                    <span class="count">{v.count}</span>
-                  </button>
-                </li>
-              ))}
-            </ul>
+            {g.grouped ? (
+              <div class="facet-subgroups" aria-labelledby={`facet-${g.key}`}>
+                {g.subgroups.map((sg) => (
+                  <div class="facet-subgroup">
+                    <h3>{sg.sub}</h3>
+                    <ul>
+                      {sg.values.map((v) => (
+                        <li>
+                          <button
+                            type="button"
+                            aria-pressed="false"
+                            data-value={v.value}
+                            data-kind={g.key === 'kind' ? v.value : undefined}
+                            style={`--share:${Math.round((v.count / g.max) * 100)}%`}
+                          >
+                            {g.key === 'kind' && <span class="dot" aria-hidden="true" />}
+                            <span class="label">{v.label}</span>
+                            <span class="leader" aria-hidden="true" />
+                            <span class="count">{v.count}</span>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <ul aria-labelledby={`facet-${g.key}`}>
+                {g.values.map((v) => (
+                  <li>
+                    <button
+                      type="button"
+                      aria-pressed="false"
+                      data-value={v.value}
+                      data-kind={g.key === 'kind' ? v.value : undefined}
+                      style={`--share:${Math.round((v.count / g.max) * 100)}%`}
+                    >
+                      {g.key === 'kind' && <span class="dot" aria-hidden="true" />}
+                      <span class="label">{v.label}</span>
+                      <span class="leader" aria-hidden="true" />
+                      <span class="count">{v.count}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         ))}
       </div>

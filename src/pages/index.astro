@@ -296,6 +296,7 @@ const schema = {
           return (
             <li
               class="entry"
+              data-initial
               style={`--i:${Math.min(i, 14)}`}
               data-status={d.status}
               data-status-label={d.status !== 'live' ? STATUSES[d.status] : undefined}
@@ -411,10 +412,20 @@ const schema = {
     const statusLabel = (s: string) =>
       s !== 'live' ? payload.groups.s[s] ?? '' : ''
 
-    for (const d of payload.rows) {
+    /* One parse is markedly cheaper than hundreds of create/append calls
+       on low-end phones. Values still pass through an HTML escaper: the
+       collection is curated, but its prose should never become markup. */
+    const esc = (value: string) =>
+      value.replace(/[&<>"']/g, (c) => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+      })[c]!)
+
+    const rowHTML = payload.rows.map((d) => {
       const topics = split(d.t)
       const geos = split(d.g)
-      const kindLabel = payload.groups.k[d.k]
+      const kindLabel = payload.groups.k[d.k] ?? ''
+      const topicLabel = topics.length ? payload.groups.t[topics[0]] ?? '' : ''
+      const geoLabel = geos.map((g) => payload.groups.g[g] ?? '').join(', ')
       const searchLabels = [
         kindLabel,
         ...topics.map((t) => payload.groups.t[t] ?? ''),
@@ -423,73 +434,26 @@ const schema = {
       const dataText = [d.n, ...split(d.an), d.b, ...searchLabels]
         .join(' ')
         .toLowerCase()
-
-      const li = document.createElement('li')
-      li.className = 'entry'
-      li.style.setProperty('--i', '0')
-      li.dataset.status = d.s
       const sl = statusLabel(d.s)
-      if (sl) li.dataset.statusLabel = sl
-      li.dataset.kind = d.k
-      li.dataset.topics = d.t
-      li.dataset.geography = d.g
-      li.dataset.orgType = d.o
-      li.dataset.licensing = d.l
-      li.dataset.access = d.a
-      li.dataset.name = d.n.toLowerCase()
-      li.dataset.text = dataText
+      const statusAttr = sl ? ` data-status-label="${esc(sl)}"` : ''
 
-      const link = document.createElement('a')
-      link.className = 'entry-link'
-      link.href = `/e/${d.i}`
+      return `<li class="entry" data-status="${esc(d.s)}"${statusAttr}` +
+        ` data-kind="${esc(d.k)}" data-topics="${esc(d.t)}"` +
+        ` data-geography="${esc(d.g)}" data-org-type="${esc(d.o)}"` +
+        ` data-licensing="${esc(d.l)}" data-access="${esc(d.a)}"` +
+        ` data-name="${esc(d.n.toLowerCase())}" data-text="${esc(dataText)}">` +
+        `<a class="entry-link" href="/e/${esc(d.i)}">` +
+        `<span class="head"><span class="name"${statusAttr}>${esc(d.n)}</span></span>` +
+        `<p class="blurb">${esc(d.b)}</p><p class="facets">` +
+        `<span class="chip chip--kind">${esc(kindLabel)}</span>` +
+        `<span class="chip">${esc(topicLabel)}</span>` +
+        `<span class="chip">${esc(geoLabel)}</span></p></a>` +
+        `<a class="out" href="${esc(d.u)}" rel="noopener" title="Go straight to ${esc(d.n)}">` +
+        `<span class="sr">Go straight to ${esc(d.n)}</span>` +
+        `<svg viewBox="0 0 10 10" fill="none" aria-hidden="true"><path d="M1.6 8.4 8.4 1.6M3.4 1.6h5v5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></a></li>`
+    }).join('')
 
-      const head = document.createElement('span')
-      head.className = 'head'
-      const name = document.createElement('span')
-      name.className = 'name'
-      if (sl) name.dataset.statusLabel = sl
-      name.textContent = d.n
-      head.append(name)
-      link.append(head)
-
-      const blurb = document.createElement('p')
-      blurb.className = 'blurb'
-      blurb.textContent = d.b
-      link.append(blurb)
-
-      const facets = document.createElement('p')
-      facets.className = 'facets'
-      const chips = [
-        ['chip chip--kind', kindLabel ?? ''],
-        ['chip', topics.length ? payload.groups.t[topics[0]] ?? '' : ''],
-        ['chip', geos.map((g) => payload.groups.g[g] ?? '').join(', ')],
-      ]
-      for (const [cls, label] of chips) {
-        const span = document.createElement('span')
-        span.className = cls
-        span.textContent = label
-        facets.append(span)
-      }
-      link.append(facets)
-      li.append(link)
-
-      const out = document.createElement('a')
-      out.className = 'out'
-      out.href = d.u
-      out.rel = 'noopener'
-      out.title = `Go straight to ${d.n}`
-      const sr = document.createElement('span')
-      sr.className = 'sr'
-      sr.textContent = `Go straight to ${d.n}`
-      out.append(sr)
-      out.insertAdjacentHTML(
-        'beforeend',
-        '<svg viewBox="0 0 10 10" fill="none" aria-hidden="true"><path d="M1.6 8.4 8.4 1.6M3.4 1.6h5v5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-      )
-      li.append(out)
-
-      listEl.append(li)
-    }
+    listEl.insertAdjacentHTML('beforeend', rowHTML)
     dataEl.remove()
   }
 
@@ -647,9 +611,15 @@ const schema = {
       )
       let max = 1
       const counts = new Map<HTMLButtonElement, number>()
+      const valueCounts = new Map<string, number>()
+      for (const e of pool) {
+        for (const value of e[g]) {
+          valueCounts.set(value, (valueCounts.get(value) ?? 0) + 1)
+        }
+      }
       for (const b of buttons) {
         const v = b.dataset.value!
-        const n = pool.filter((e) => e[g].includes(v)).length
+        const n = valueCounts.get(v) ?? 0
         counts.set(b, n)
         if (n > max) max = n
       }

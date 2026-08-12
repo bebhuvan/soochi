@@ -763,7 +763,13 @@ a { color: inherit; }
 
 .entry + .entry { margin-top: 2.625rem; }
 
-.entry { position: relative; }
+.entry {
+  position: relative;
+  /* Rows remain in the document for search and keyboard navigation, but
+     the browser can skip layout/paint work until a row nears the viewport. */
+  content-visibility: auto;
+  contain-intrinsic-block-size: auto 8rem;
+}
 
 .entry-link {
   display: block;
@@ -1948,7 +1954,10 @@ a { color: inherit; }
 /* ── Page-load: one orchestrated moment, then nothing ─────────────── */
 
 @media (prefers-reduced-motion: no-preference) {
-  .entry {
+  /* Animate only the rows present in the first HTML response. Animating
+     every client-built row below the fold forces the browser to style and
+     composite hundreds of invisible elements during startup. */
+  .entry[data-initial] {
     animation: rise 0.5s var(--ease) backwards;
     animation-delay: calc(var(--i, 0) * 28ms + 60ms);
   }
@@ -2029,12 +2038,66 @@ a { color: inherit; }
 }
 
 @media (max-width: 34rem) {
+  :root { --gutter: 1rem; }
+
   .statement { font-size: 1.25rem; }
-  .masthead { flex-wrap: wrap; gap: 0.9rem 1rem; }
+
+  .masthead {
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+    padding-block: 0.75rem;
+  }
+
+  .wordmark { min-block-size: 2.75rem; }
+
   .masthead nav {
     inline-size: 100%;
+    display: grid;
+    grid-template-columns: repeat(4, max-content) 2.75rem;
     justify-content: space-between;
-    gap: 0.75rem;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .masthead nav a {
+    display: flex;
+    align-items: center;
+    min-block-size: 2.75rem;
+    padding-bottom: 0;
+  }
+
+  .theme-toggle {
+    inline-size: 2.75rem;
+    block-size: 2.75rem;
+    margin-inline-start: 0;
+    translate: 0;
+  }
+
+  .search input {
+    min-block-size: 2.75rem;
+    /* Prevent Safari from zooming the viewport when search receives focus. */
+    font-size: 1rem;
+  }
+
+  .search .clear {
+    inline-size: 2.75rem;
+    block-size: 2.75rem;
+    padding: 0;
+  }
+
+  .filters-toggle,
+  .facet button,
+  .facet[data-group='kind'] button {
+    min-block-size: 2.75rem;
+  }
+
+  .entry-link { padding-right: 3rem; }
+
+  .entry .out {
+    top: -0.35rem;
+    right: -0.25rem;
+    inline-size: 2.75rem;
+    block-size: 2.75rem;
   }
 }
 

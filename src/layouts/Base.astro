@@ -20,7 +20,7 @@ interface Props {
 
 const {
   title,
-  description = 'A searchable index of organisations, public datasets, tools and archives for work on public problems, with a growing focus on India.',
+  description = 'Soochi is a searchable index of useful organisations, datasets, tools and archives for people working on public problems.',
   schema,
   noindex = false,
 } = Astro.props
@@ -120,10 +120,12 @@ const FOOTER = [
     <meta property="og:image" content={ogImage} />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Soochi — find useful data, tools and organisations for public-interest work" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={fullTitle} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogImage} />
+    <meta name="twitter:image:alt" content="Soochi — find useful data, tools and organisations for public-interest work" />
 
     <meta name="theme-color" content="#fafaf9" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#101116" media="(prefers-color-scheme: dark)" />

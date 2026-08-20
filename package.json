@@ -15,13 +15,13 @@
     "unverified": "node scripts/unverified.mjs"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.115.0",
+    "@anthropic-ai/sdk": "^0.117.1",
     "@astrojs/rss": "^4.0.19",
     "@astrojs/sitemap": "^3.7.3",
     "@fontsource-variable/public-sans": "^5.1.1",
     "@fontsource-variable/source-serif-4": "^5.1.1",
     "@types/leaflet": "^1.9.22",
-    "astro": "^7.1.6",
+    "astro": "^7.2.2",
     "leaflet": "^1.9.4",
     "zod": "^4.4.3"
   },

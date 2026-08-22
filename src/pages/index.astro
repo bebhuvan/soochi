@@ -474,7 +474,12 @@ const schema = {
 
   const entries = [...document.querySelectorAll<HTMLElement>('.entry')].map((el) => ({
     el,
-    text: normText(el.dataset.text ?? ''),
+    /* The destination URL is already present for the outbound link, so
+       indexing it makes domain searches useful without shipping another
+       byte of entry data. */
+    text: normText(
+      `${el.dataset.text ?? ''} ${el.querySelector<HTMLAnchorElement>('.out')?.href ?? ''}`,
+    ),
     name: normText(el.dataset.name ?? ''),
     kind: split(el.dataset.kind),
     topics: split(el.dataset.topics),
@@ -523,16 +528,28 @@ const schema = {
    * Name matches carry more weight than blurb / label matches, so
    * results sort by relevance instead of alphabetically.
    */
-  function scoreSearch(e: Entry, raw: string): number {
-    const terms = normText(raw).split(/\s+/).filter((t) => t.length >= 2)
+  type SearchTerm = { value: string; wordStart: RegExp }
+
+  function searchTerms(raw: string): SearchTerm[] {
+    return normText(raw)
+      .split(/\s+/)
+      .filter((value) => value.length >= 2)
+      .map((value) => ({
+        value,
+        /* Compile once per query, not once per entry. */
+        wordStart: new RegExp('\\b' + escapeRegex(value)),
+      }))
+  }
+
+  function scoreSearch(e: Entry, terms: SearchTerm[]): number {
     if (!terms.length) return 0
 
     let total = 0
-    for (const term of terms) {
+    for (const { value: term, wordStart } of terms) {
       let best = 0
 
       // Word-start match in the entry name
-      if (new RegExp('\\b' + escapeRegex(term)).test(e.name)) {
+      if (wordStart.test(e.name)) {
         best = 10
       }
       // Substring match in the entry name
@@ -540,7 +557,7 @@ const schema = {
         best = 6
       }
       // Word-start match anywhere in the full text
-      else if (new RegExp('\\b' + escapeRegex(term)).test(e.text)) {
+      else if (wordStart.test(e.text)) {
         best = 3
       }
       // Substring match in the full text
@@ -573,17 +590,20 @@ const schema = {
   }
 
   function apply() {
-    const terms = normText(state.q).split(/\s+/).filter((t) => t.length >= 2)
+    const terms = searchTerms(state.q)
 
     // Score every entry, then collect the ones that pass both search
     // and active facet selections.
     const scored = entries.map((e) => ({
       e,
-      score: terms.length ? scoreSearch(e, state.q) : 0,
+      score: terms.length ? scoreSearch(e, terms) : 0,
       facetOk: matches(e, null),
     }))
 
     const visible = scored.filter((s) => s.facetOk && s.score >= 0)
+    const searchMatches = new Set(
+      scored.filter((s) => s.score >= 0).map((s) => s.e),
+    )
 
     // Sort: highest score first, then alphabetical for ties so the
     // order is stable between keystrokes.
@@ -604,7 +624,9 @@ const schema = {
 
     // Redraw the rail: counts, bar widths, and what has gone empty.
     for (const g of GROUPS) {
-      const pool = entries.filter((e) => matches(e, g))
+      /* Reuse the scores above so facet counts reflect the text query
+         without running search a second time. */
+      const pool = entries.filter((e) => searchMatches.has(e) && matches(e, g))
       const buttons = rail.querySelectorAll<HTMLButtonElement>(
         `.facet[data-group="${g}"] button`,
       )

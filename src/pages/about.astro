@@ -36,11 +36,30 @@ const counts = {
   topics: Object.keys(TOPICS).length,
   places: Object.keys(GEOGRAPHIES).length,
 }
+
+const schema = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'AboutPage',
+    name: 'About Soochi',
+    description: 'What this index is, what gets listed, and how it is kept honest.',
+    url: new URL('/about', Astro.site).toString(),
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Index', item: new URL('/', Astro.site).toString() },
+      { '@type': 'ListItem', position: 2, name: 'About', item: new URL('/about', Astro.site).toString() },
+    ],
+  },
+]
 ---
 
 <Base
   title="About"
   description="What this index is, what gets listed, and how it is kept honest."
+  schema={schema}
 >
   <div class="page-head">
     <h1>About</h1>

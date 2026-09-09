@@ -43,11 +43,30 @@ const bad = [
   'A description that names the thing again instead of saying what it does',
   'Five topics when two would do',
 ]
+
+const schema = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'WebPage',
+    name: 'Contribute to Soochi',
+    description: 'Suggest an entry, file a correction, or open a pull request.',
+    url: new URL('/contribute', Astro.site).toString(),
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Index', item: new URL('/', Astro.site).toString() },
+      { '@type': 'ListItem', position: 2, name: 'Contribute', item: new URL('/contribute', Astro.site).toString() },
+    ],
+  },
+]
 ---
 
 <Base
   title="Contribute"
   description="Suggest an entry, file a correction, or open a pull request."
+  schema={schema}
 >
   <div class="page-head">
     <h1>Contribute</h1>

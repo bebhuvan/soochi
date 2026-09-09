@@ -14,21 +14,45 @@ const { entry } = Astro.props
 const d = entry.data
 const { Content } = await render(entry)
 
-const host = new URL(d.url).host.replace(/^www\./, '')
+const allEntries = await getCollection('entries')
+const liveEntries = allEntries.filter((e) => e.data.status !== 'dead' && e.id !== entry.id)
 
-/** Only rows that have something in them. */
-const facts = [
-  ['Kind', KINDS[d.kind]],
-  ['Run by', d.orgType ? ORG_TYPES[d.orgType] : null],
-  ['Founded', d.founded ? String(d.founded) : null],
-  ['Topics', d.topics.map((t) => TOPICS[t]).join(', ')],
-  ['Where', d.geography.map((g) => GEOGRAPHIES[g]).join(', ')],
-  ['Licence', d.licensing ? LICENSING[d.licensing] : null],
-  ['Cost', d.access ? ACCESS[d.access] : null],
-  ['Licence terms', d.license ?? null],
-  ['Based in', d.location ? [d.location.city, d.location.region].filter(Boolean).join(', ') || null : null],
-  ['Status', d.status !== 'live' ? STATUSES[d.status] : null],
-].filter((r): r is [string, string] => Boolean(r[1]))
+const primaryTopic = d.topics[0]
+const primaryTopicLabel = primaryTopic ? TOPICS[primaryTopic] : null
+const pageTitle = primaryTopicLabel
+  ? `${d.name} — ${KINDS[d.kind]} (${primaryTopicLabel})`
+  : `${d.name} — ${KINDS[d.kind]}`
+
+const explicitRelated = (d.related ?? [])
+  .map((relId) => liveEntries.find((e) => e.id === relId))
+  .filter(Boolean) as typeof allEntries
+
+let relatedList = [...explicitRelated]
+if (relatedList.length < 3) {
+  const currentTopics = new Set(d.topics)
+  const currentGeos = new Set(d.geography)
+  const alreadyIn = new Set(relatedList.map((e) => e.id))
+
+  const scoredOther = liveEntries
+    .filter((e) => !alreadyIn.has(e.id))
+    .map((e) => {
+      let score = 0
+      for (const t of e.data.topics) if (currentTopics.has(t)) score += 4
+      for (const g of e.data.geography) if (currentGeos.has(g)) score += 2
+      if (e.data.kind === d.kind) score += 1
+      return { e, score }
+    })
+    .filter((s) => s.score > 0)
+    .sort((a, b) => b.score - a.score)
+
+  for (const s of scoredOther) {
+    if (relatedList.length >= 3) break
+    relatedList.push(s.e)
+  }
+}
+
+const host = new URL(d.url).host.replace(/^www\./, '')
+const canonicalUrl = new URL(`/e/${entry.id}`, Astro.site).toString()
 
 const fmtDate = (x: Date) =>
   x.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
@@ -38,10 +62,7 @@ const fmtDate = (x: Date) =>
 const SCHEMA_TYPE: Record<string, string> = {
   organisation: 'Organization',
   community: 'Organization',
-  /* `DataCatalog`, not `Dataset` — the kind now spans whole statistical
-     services as well as single surveys, and a catalogue containing one
-     dataset is still a truthful catalogue. The reverse is not true. */
-  dataset: 'DataCatalog',
+  dataset: 'Dataset',
   directory: 'CollectionPage',
   tool: 'SoftwareApplication',
   publication: 'Periodical',
@@ -49,53 +70,118 @@ const SCHEMA_TYPE: Record<string, string> = {
   archive: 'ArchiveComponent',
 }
 
-const schema = [
-  {
-    '@context': 'https://schema.org',
-    '@type': SCHEMA_TYPE[d.kind] ?? 'WebSite',
+const isDataset = d.kind === 'dataset'
+const entityType = isDataset ? 'Dataset' : (SCHEMA_TYPE[d.kind] ?? 'WebSite')
+
+const breadcrumbItems: any[] = [
+  { '@type': 'ListItem', position: 1, name: 'Index', item: new URL('/', Astro.site).toString() },
+]
+if (primaryTopic && primaryTopicLabel) {
+  breadcrumbItems.push({
+    '@type': 'ListItem',
+    position: 2,
+    name: primaryTopicLabel,
+    item: new URL(`/topics/${primaryTopic}`, Astro.site).toString(),
+  })
+  breadcrumbItems.push({
+    '@type': 'ListItem',
+    position: 3,
     name: d.name,
-    description: d.blurb,
-    url: d.url,
-    ...(d.alternateNames.length ? { alternateName: d.alternateNames } : {}),
-    ...(d.founded ? { foundingDate: String(d.founded) } : {}),
-    ...(d.license ? { license: d.license } : {}),
-    ...(d.people.length
-      ? { founder: d.people.map((p) => ({ '@type': 'Person', name: p.name })) }
-      : {}),
-    ...(d.location?.city
-      ? {
-          address: {
-            '@type': 'PostalAddress',
-            addressLocality: d.location.city,
-            ...(d.location.region ? { addressRegion: d.location.region } : {}),
-          },
-        }
-      : {}),
-    ...(d.links.length ? { sameAs: d.links.map((l) => l.url) } : {}),
-  },
+    item: canonicalUrl,
+  })
+} else {
+  breadcrumbItems.push({
+    '@type': 'ListItem',
+    position: 2,
+    name: d.name,
+    item: canonicalUrl,
+  })
+}
+
+const entitySchema: Record<string, unknown> = {
+  '@context': 'https://schema.org',
+  '@type': entityType,
+  '@id': `${canonicalUrl}#entity`,
+  mainEntityOfPage: canonicalUrl,
+  name: d.name,
+  description: d.blurb,
+  url: d.url,
+  sameAs: [d.url, ...(d.links ? d.links.map((l) => l.url) : [])],
+  ...(d.alternateNames?.length ? { alternateName: d.alternateNames } : {}),
+  ...(d.founded ? { foundingDate: String(d.founded) } : {}),
+  ...(d.license ? { license: d.license } : {}),
+  ...(d.people?.length
+    ? { founder: d.people.map((p) => ({ '@type': 'Person', name: p.name })) }
+    : {}),
+  ...(d.location?.city
+    ? {
+        address: {
+          '@type': 'PostalAddress',
+          addressLocality: d.location.city,
+          ...(d.location.region ? { addressRegion: d.location.region } : {}),
+        },
+      }
+    : {}),
+  ...(isDataset
+    ? {
+        isAccessibleForFree: d.access === 'free',
+        keywords: [
+          KINDS[d.kind],
+          ...d.topics.map((t) => TOPICS[t]),
+          ...d.geography.map((g) => GEOGRAPHIES[g]),
+        ],
+        includedInDataCatalog: {
+          '@type': 'DataCatalog',
+          name: 'Soochi',
+          url: Astro.site?.toString(),
+        },
+      }
+    : {}),
+}
+
+const schema = [
+  entitySchema,
   {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
-    itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Index', item: new URL('/', Astro.site).toString() },
-      { '@type': 'ListItem', position: 2, name: d.name },
-    ],
+    itemListElement: breadcrumbItems,
   },
 ]
 ---
 
-<Base title={d.name} description={d.blurb} schema={schema}>
+<Base
+  title={pageTitle}
+  description={d.blurb}
+  schema={schema}
+  ogImage={`/og/kind-${d.kind}.png`}
+  ogType="article"
+>
   <article class="entry-page" data-kind={d.kind}>
-    <a class="back" href="/">
-      <svg viewBox="0 0 10 10" fill="none" aria-hidden="true">
-        <path d="M6.2 1.4 2.6 5l3.6 3.6" stroke="currentColor" stroke-width="1.4"
-          stroke-linecap="round" stroke-linejoin="round" />
-      </svg>
-      All entries
-    </a>
+    <div class="entry-nav-back">
+      <a class="back" href="/">
+        <svg viewBox="0 0 10 10" fill="none" aria-hidden="true">
+          <path d="M6.2 1.4 2.6 5l3.6 3.6" stroke="currentColor" stroke-width="1.4"
+            stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+        All entries
+      </a>
+      {primaryTopic && (
+        <a class="back back--topic" href={`/topics/${primaryTopic}`}>
+          <span>In {primaryTopicLabel}</span>
+          <svg viewBox="0 0 10 10" fill="none" aria-hidden="true">
+            <path d="M3.8 1.4 7.4 5 3.8 8.6" stroke="currentColor" stroke-width="1.4"
+              stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </a>
+      )}
+    </div>
 
     <header>
-      <p class="kind"><span class="dot" aria-hidden="true" />{KINDS[d.kind]}</p>
+      <p class="kind">
+        <a class="kind-link" href={`/kinds/${d.kind}`}>
+          <span class="dot" aria-hidden="true" />{KINDS[d.kind]}
+        </a>
+      </p>
       <h1>{d.name}</h1>
       <p class="blurb">{d.blurb}</p>
 
@@ -118,9 +204,48 @@ const schema = [
       <section class="facts">
         <h2>Details</h2>
         <dl>
-          {facts.map(([k, v]) => (
-            <div><dt>{k}</dt><dd>{v}</dd></div>
-          ))}
+          <div>
+            <dt>Kind</dt>
+            <dd><a class="fact-link" href={`/kinds/${d.kind}`}>{KINDS[d.kind]}</a></dd>
+          </div>
+          {d.orgType && (
+            <div><dt>Run by</dt><dd>{ORG_TYPES[d.orgType]}</dd></div>
+          )}
+          {d.founded && (
+            <div><dt>Founded</dt><dd>{d.founded}</dd></div>
+          )}
+          <div>
+            <dt>Topics</dt>
+            <dd class="fact-tags">
+              {d.topics.map((t, i) => (
+                <span>
+                  <a class="fact-link" href={`/topics/${t}`}>{TOPICS[t]}</a>{i < d.topics.length - 1 ? ', ' : ''}
+                </span>
+              ))}
+            </dd>
+          </div>
+          <div>
+            <dt>Where</dt>
+            <dd>{d.geography.map((g) => GEOGRAPHIES[g]).join(', ')}</dd>
+          </div>
+          {d.licensing && (
+            <div><dt>Licence</dt><dd>{LICENSING[d.licensing]}</dd></div>
+          )}
+          {d.access && (
+            <div><dt>Cost</dt><dd>{ACCESS[d.access]}</dd></div>
+          )}
+          {d.license && (
+            <div><dt>Licence terms</dt><dd>{d.license}</dd></div>
+          )}
+          {d.location && (d.location.city || d.location.region) && (
+            <div>
+              <dt>Based in</dt>
+              <dd>{[d.location.city, d.location.region].filter(Boolean).join(', ')}</dd>
+            </div>
+          )}
+          {d.status !== 'live' && (
+            <div><dt>Status</dt><dd>{STATUSES[d.status]}</dd></div>
+          )}
         </dl>
       </section>
 
@@ -190,6 +315,26 @@ const schema = [
       )}
     </div>
 
+    {relatedList.length > 0 && (
+      <section class="related-block">
+        <h2>Related in {primaryTopicLabel ?? KINDS[d.kind]}</h2>
+        <ul class="related-entries">
+          {relatedList.map((r) => (
+            <li class="related-item" data-kind={r.data.kind}>
+              <a class="related-link" href={`/e/${r.id}`}>
+                <div class="related-meta">
+                  <span class="dot" aria-hidden="true" />
+                  <span class="related-name">{r.data.name}</span>
+                  <span class="related-chip">{KINDS[r.data.kind]}</span>
+                </div>
+                <p class="related-blurb">{r.data.blurb}</p>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
+
     <footer class="provenance">
       Added {fmtDate(d.added)}{d.submittedBy ? ` by ${d.submittedBy}` : ''}.
       {d.verifiedAt
@@ -199,3 +344,121 @@ const schema = [
     </footer>
   </article>
 </Base>
+
+<style>
+  .entry-nav-back {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .back--topic {
+    color: var(--accent);
+    text-decoration: none;
+    font-size: 0.75rem;
+    font-weight: 550;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+  .back--topic:hover { text-decoration: underline; }
+
+  .kind-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    color: inherit;
+  }
+  .kind-link:hover { color: var(--ink); }
+
+  .fact-link {
+    color: var(--accent);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    text-decoration-color: color-mix(in oklab, var(--accent) 30%, transparent);
+  }
+  .fact-link:hover { text-decoration-color: var(--accent); }
+
+  .related-block {
+    margin-top: 3.5rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--rule);
+  }
+
+  .related-block h2 {
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    margin: 0 0 1.25rem;
+    font-size: 0.6875rem;
+    font-weight: 700;
+  }
+
+  .related-entries {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .related-item {
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    background: color-mix(in oklab, var(--ink) 2%, transparent);
+    transition: border-color 0.18s var(--ease), background-color 0.18s var(--ease);
+  }
+
+  .related-item:hover {
+    border-color: color-mix(in oklab, var(--k) 45%, transparent);
+    background: color-mix(in oklab, var(--k) 5%, transparent);
+  }
+
+  .related-link {
+    display: block;
+    padding: 0.875rem 1.125rem;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .related-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .related-name {
+    font-size: 0.9375rem;
+    font-weight: 620;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+  }
+
+  .related-chip {
+    margin-left: auto;
+    font-size: 0.6563rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+  }
+
+  .related-blurb {
+    margin: 0.375rem 0 0;
+    font-family: var(--font-text);
+    font-size: 0.875rem;
+    line-height: 1.45;
+    color: var(--ink-soft);
+    text-wrap: pretty;
+  }
+
+  .related-item .dot {
+    background: var(--k);
+    border-radius: 50%;
+    inline-size: 6px;
+    block-size: 6px;
+  }
+</style>

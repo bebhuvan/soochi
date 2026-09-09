@@ -9,11 +9,31 @@ import {
 // available as an override for preview or staging builds.
 const TURNSTILE_KEY =
   import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || '0x4AAAAAAEIN0_a39ClHlkv1'
+
+const schema = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'WebPage',
+    name: 'Add an entry to Soochi',
+    description: "Suggest a source for Soochi's public-interest directory.",
+    url: new URL('/submit', Astro.site).toString(),
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Index', item: new URL('/', Astro.site).toString() },
+      { '@type': 'ListItem', position: 2, name: 'Contribute', item: new URL('/contribute', Astro.site).toString() },
+      { '@type': 'ListItem', position: 3, name: 'Add an entry', item: new URL('/submit', Astro.site).toString() },
+    ],
+  },
+]
 ---
 
 <Base
   title="Add an entry"
   description="Suggest a source for Soochi's public-interest directory."
+  schema={schema}
 >
   <div class="page-head">
     <h1>Add an entry</h1>

@@ -27,11 +27,22 @@ const points = shown
 const missing = shown.length - points.length
 const inIndia = points.filter((p) => p.india).length
 const elsewhere = points.length - inIndia
+const schema = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Index', item: new URL('/', Astro.site).toString() },
+      { '@type': 'ListItem', position: 2, name: 'Map', item: new URL('/map', Astro.site).toString() },
+    ],
+  },
+]
 ---
 
 <Base
   title="Map"
   description="Where the organisations in the index are based."
+  schema={schema}
 >
   <div class="map-head">
     <h1>Map</h1>

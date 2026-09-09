@@ -54,12 +54,15 @@ than deleted, so the record of what used to exist survives.
 ## Data
 
 - [index.json](${base}/index.json): The complete index, CC BY 4.0. One JSON object per entry with every field; attribution is required.
+- [llms-full.txt](${base}/llms-full.txt): Complete detailed text representation of all entries.
 - [RSS feed](${base}/rss.xml): The 50 most recently added entries.
 - [Sitemap](${base}/sitemap-index.xml): Every page.
 
 ## Pages
 
 - [Index](${base}/): All entries, filterable by kind, topic, place and access.
+- [Topics](${base}/topics): Directory organized across all 31 closed topics.
+- [Kinds](${base}/kinds): Directory grouped by the 8 functional kinds.
 - [Map](${base}/map): Where the organisations are based — not where their work applies. Only entries with a physical home appear.
 - [About](${base}/about): What gets listed, what does not, and how the index is kept honest.
 - [Contribute](${base}/contribute): How to add or correct an entry.

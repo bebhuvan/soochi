@@ -16,6 +16,8 @@ interface Props {
   schema?: Record<string, unknown> | Record<string, unknown>[]
   /** Set on pages that should not be indexed. */
   noindex?: boolean
+  ogImage?: string
+  ogType?: string
 }
 
 const {
@@ -23,30 +25,40 @@ const {
   description = 'Soochi is a searchable index of the data, tools, organisations and research that people working on public problems actually rely on.',
   schema,
   noindex = false,
+  ogImage: customOgImage,
+  ogType = 'website',
 } = Astro.props
 
 const SITE = 'Soochi'
-const fullTitle = title ? `${title} — ${SITE}` : `${SITE} — data, tools, organisations and research`
+const fullTitle = !title
+  ? `${SITE} — data, tools, organisations and research`
+  : title.includes(SITE)
+    ? title
+    : `${title} — ${SITE}`
 const canonical = new URL(Astro.url.pathname, Astro.site)
-const ogImage = new URL('/og.png', Astro.site)
+const ogImage = new URL(customOgImage ?? '/og.png', Astro.site)
+const here = Astro.url.pathname.replace(/\/$/, '') || '/'
 
-const baseSchema = {
+const isHome = here === '/'
+const baseSchema: Record<string, unknown> = {
   '@context': 'https://schema.org',
   '@type': 'WebSite',
   name: SITE,
   url: Astro.site?.toString(),
   description,
   license: 'https://creativecommons.org/licenses/by/4.0/',
-  potentialAction: {
-    '@type': 'SearchAction',
-    target: { '@type': 'EntryPoint', urlTemplate: `${Astro.site}?q={search_term_string}` },
-    'query-input': 'required name=search_term_string',
-  },
+  ...(isHome
+    ? {
+        potentialAction: {
+          '@type': 'SearchAction',
+          target: { '@type': 'EntryPoint', urlTemplate: `${Astro.site}?q={search_term_string}` },
+          'query-input': 'required name=search_term_string',
+        },
+      }
+    : {}),
 }
 
 const jsonLd = schema ? [baseSchema, ...(Array.isArray(schema) ? schema : [schema])] : [baseSchema]
-
-const here = Astro.url.pathname.replace(/\/$/, '') || '/'
 
 /* `also` folds leaf pages into their section, so /submit still lights up
    Contribute — otherwise the page people arrive on from outside is the
@@ -66,6 +78,8 @@ const FOOTER = [
     heading: 'Browse',
     links: [
       { href: '/', label: 'The index' },
+      { href: '/topics', label: 'Topics' },
+      { href: '/kinds', label: 'Kinds' },
       { href: '/map', label: 'Map' },
       { href: '/directories', label: 'Other directories' },
       { href: '/about', label: 'About' },
@@ -85,6 +99,7 @@ const FOOTER = [
       { href: '/index.json', label: 'index.json' },
       { href: '/rss.xml', label: 'RSS' },
       { href: '/llms.txt', label: 'llms.txt' },
+      { href: '/llms-full.txt', label: 'llms-full.txt' },
       { href: 'https://github.com/bebhuvan/soochi', label: 'GitHub repository' },
     ],
   },
@@ -109,23 +124,25 @@ const FOOTER = [
       title="Machine-readable index"
     />
     <link rel="alternate" type="application/rss+xml" href="/rss.xml" title="Soochi — new entries" />
+    <link rel="alternate" type="text/plain" href="/llms-full.txt" title="Soochi — full catalog for LLMs" />
 
     <link rel="preload" href={textFont} as="font" type="font/woff2" crossorigin fetchpriority="high" />
 
     <meta property="og:site_name" content={SITE} />
     <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={description} />
-    <meta property="og:type" content="website" />
+    <meta property="og:type" content={ogType} />
     <meta property="og:url" content={canonical} />
     <meta property="og:image" content={ogImage} />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="Soochi — find useful data, tools, organisations and research for public-interest work" />
+    <meta property="og:image:alt" content={fullTitle} />
+    <meta property="og:locale" content="en_IN" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={fullTitle} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogImage} />
-    <meta name="twitter:image:alt" content="Soochi — find useful data, tools, organisations and research for public-interest work" />
+    <meta name="twitter:image:alt" content={fullTitle} />
 
     <meta name="theme-color" content="#fafaf9" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#101116" media="(prefers-color-scheme: dark)" />

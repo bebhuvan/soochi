@@ -12,7 +12,8 @@
     "preview:worker": "npm run build && wrangler dev",
     "deploy": "npm run check && npm run build && wrangler deploy",
     "check": "astro check",
-    "unverified": "node scripts/unverified.mjs"
+    "unverified": "node scripts/unverified.mjs",
+    "reindex": "node scripts/trigger-reindex.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.115.0",

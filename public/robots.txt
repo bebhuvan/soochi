@@ -6,6 +6,7 @@ Allow: /
 # and it is the canonical form of this data:
 #   https://soochi.fyi/index.json   full dataset, CC BY 4.0
 #   https://soochi.fyi/llms.txt     a map of the site and its vocabulary
+#   https://soochi.fyi/llms-full.txt full structured text catalog for LLMs
 #   https://soochi.fyi/rss.xml      the 50 most recently added entries
 
 Sitemap: https://soochi.fyi/sitemap-index.xml

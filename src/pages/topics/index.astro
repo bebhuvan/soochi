@@ -1,0 +1,191 @@
+---
+import { getCollection } from 'astro:content'
+import Base from '../../layouts/Base.astro'
+import { TOPICS, TOPIC_GROUPS, keysOf } from '../../taxonomy'
+
+const all = await getCollection('entries')
+const live = all.filter((e) => e.data.status !== 'dead')
+
+const topicCounts = new Map<string, number>()
+for (const e of live) {
+  for (const t of e.data.topics) {
+    topicCounts.set(t, (topicCounts.get(t) ?? 0) + 1)
+  }
+}
+
+const groups = TOPIC_GROUPS.map((grp) => ({
+  label: grp.label,
+  topics: grp.topics.map((t) => ({
+    key: t,
+    name: TOPICS[t],
+    count: topicCounts.get(t) ?? 0,
+  })),
+}))
+
+const totalTopics = keysOf(TOPICS).length
+const pageTitle = 'Topics — Browse Civic Data, Tools & Organisations'
+const pageDesc = `Explore ${live.length} public-interest entries across ${totalTopics} closed topics, from agriculture and climate to governance, public finance, and health in India.`
+const canonicalUrl = new URL('/topics', Astro.site).toString()
+
+const schema = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: 'Soochi Topics Directory',
+    description: pageDesc,
+    url: canonicalUrl,
+    numberOfItems: totalTopics,
+    mainEntity: {
+      '@type': 'ItemList',
+      itemListElement: keysOf(TOPICS).map((t, i) => ({
+        '@type': 'ListItem',
+        position: i + 1,
+        url: new URL(`/topics/${t}`, Astro.site).toString(),
+        name: TOPICS[t],
+      })),
+    },
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Index', item: new URL('/', Astro.site).toString() },
+      { '@type': 'ListItem', position: 2, name: 'Topics', item: canonicalUrl },
+    ],
+  },
+]
+---
+
+<Base title={pageTitle} description={pageDesc} schema={schema}>
+  <div class="topics-index-page">
+    <div class="page-head">
+      <a class="back" href="/">
+        <svg viewBox="0 0 10 10" fill="none" aria-hidden="true">
+          <path d="M6.2 1.4 2.6 5l3.6 3.6" stroke="currentColor" stroke-width="1.4"
+            stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+        All entries
+      </a>
+      <p class="section-tag">Directory by topic</p>
+      <h1>Topics</h1>
+      <p class="statement">
+        The thirty-one closed topics that organise the index. Each term is
+        a curated view into the organisations, open data, and software
+        working on that problem.
+      </p>
+    </div>
+
+    <div class="groups">
+      {groups.map((grp) => (
+        <section class="topic-group">
+          <h2>{grp.label}</h2>
+          <ul class="topic-grid">
+            {grp.topics.map((t) => (
+              <li class="topic-card">
+                <a href={`/topics/${t.key}`}>
+                  <span class="topic-title">{t.name}</span>
+                  <span class="topic-tally">
+                    {t.count} {t.count === 1 ? 'entry' : 'entries'}
+                  </span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
+    </div>
+  </div>
+</Base>
+
+<style>
+  .topics-index-page {
+    max-width: 44rem;
+    padding-block: 2.25rem 6rem;
+  }
+
+  .section-tag {
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    margin: 2rem 0 0.875rem;
+    font-size: 0.6875rem;
+    font-weight: 700;
+  }
+
+  .topics-index-page h1 {
+    font-size: 2.5rem;
+    font-weight: 650;
+    letter-spacing: -0.025em;
+    line-height: 1.1;
+    color: var(--ink);
+    margin: 0 0 1.25rem;
+  }
+
+  .statement {
+    font-family: var(--font-text);
+    font-size: 1.25rem;
+    line-height: 1.45;
+    color: var(--ink-soft);
+    margin: 0 0 3rem;
+    text-wrap: pretty;
+  }
+
+  .groups {
+    display: grid;
+    gap: 3.5rem;
+  }
+
+  .topic-group h2 {
+    border-top: 1px solid var(--rule);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink);
+    margin: 0 0 1.25rem;
+    padding-top: 1.5rem;
+    font-size: 0.6875rem;
+    font-weight: 700;
+  }
+
+  .topic-grid {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+    gap: 0.75rem;
+  }
+
+  .topic-card {
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    background: color-mix(in oklab, var(--ink) 2%, transparent);
+    transition: border-color 0.18s var(--ease), background-color 0.18s var(--ease);
+  }
+
+  .topic-card:hover {
+    border-color: var(--accent);
+    background: color-mix(in oklab, var(--accent) 4%, transparent);
+  }
+
+  .topic-card a {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 0.875rem 1rem;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .topic-title {
+    font-size: 0.9375rem;
+    font-weight: 620;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+  }
+
+  .topic-tally {
+    font-variant-numeric: tabular-nums;
+    font-size: 0.75rem;
+    color: var(--ink-muted);
+  }
+</style>

@@ -20,13 +20,13 @@ interface Props {
 
 const {
   title,
-  description = 'Soochi is a searchable index of useful organisations, datasets, tools and archives for people working on public problems.',
+  description = 'Soochi is a searchable index of the data, tools, organisations and research that people working on public problems actually rely on.',
   schema,
   noindex = false,
 } = Astro.props
 
 const SITE = 'Soochi'
-const fullTitle = title ? `${title} — ${SITE}` : `${SITE} — civic data, organisations and tools`
+const fullTitle = title ? `${title} — ${SITE}` : `${SITE} — data, tools, organisations and research`
 const canonical = new URL(Astro.url.pathname, Astro.site)
 const ogImage = new URL('/og.png', Astro.site)
 
@@ -120,12 +120,12 @@ const FOOTER = [
     <meta property="og:image" content={ogImage} />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="Soochi — find useful data, tools and organisations for public-interest work" />
+    <meta property="og:image:alt" content="Soochi — find useful data, tools, organisations and research for public-interest work" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={fullTitle} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogImage} />
-    <meta name="twitter:image:alt" content="Soochi — find useful data, tools and organisations for public-interest work" />
+    <meta name="twitter:image:alt" content="Soochi — find useful data, tools, organisations and research for public-interest work" />
 
     <meta name="theme-color" content="#fafaf9" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#101116" media="(prefers-color-scheme: dark)" />
@@ -181,8 +181,8 @@ const FOOTER = [
         <div class="foot-about">
           <p class="foot-mark">Soochi</p>
           <p>
-            <em>Soochi</em> can mean “index”. It brings organisations, public
-            data, tools and archives for public-interest work into one place.
+            <em>Soochi</em> can mean “index”. It brings together the data,
+            tools, organisations and research behind public-interest work.
           </p>
         </div>
 

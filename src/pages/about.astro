@@ -15,9 +15,11 @@ const kinds = keysOf(KINDS).map((k) => ({
 
 const listed = [
   'Organisations doing civic, research or advocacy work',
-  'Open datasets, and the portals that hold them',
-  'Tools you can run without buying anything',
-  'Reporting and research that shows its sources',
+  'Open datasets, and the public portals that hold them',
+  'Tools and software you can run without buying anything',
+  'Reporting, research and publications that show their sources',
+  'Live dashboards tracking public data and civic indicators',
+  'Curated directories that point deeper into a specific domain',
   'Archives, including of things that no longer exist',
   'Communities you can actually join and ask questions in',
 ]
@@ -43,11 +45,12 @@ const counts = {
   <div class="page-head">
     <h1>About</h1>
     <p class="statement">
-      Good civic work is badly indexed. The organisation that already built
-      the dataset you need, the tool that would have saved you three weeks,
-      the archive holding records you assumed were lost — these exist, and
-      finding them mostly depends on <em>knowing someone who already
-      knows</em>. This is an attempt to write that knowledge down.
+      Good civic work is badly indexed. The team that spent years on the
+      problem, the dataset you assumed didn't exist, the tool that would
+      have saved three weeks, the report that already investigated the
+      facts, or the archive holding records everyone thought were lost —
+      these exist. But finding them mostly depends on <em>knowing someone
+      who already knows</em>. This index is an attempt to write that knowledge down.
     </p>
   </div>
 
@@ -64,7 +67,7 @@ const counts = {
   </section>
 
   <section class="about-block">
-    <h2>The seven kinds</h2>
+    <h2>The {kinds.length} kinds</h2>
     <p class="lead">
       Every entry is exactly one of these. The vocabulary is deliberately
       small — an index where each entry invents its own tags is a list, not

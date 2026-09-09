@@ -41,7 +41,7 @@ export const GET: APIRoute = async ({ site }) => {
 
   const body = `# Soochi
 
-> A searchable index of organisations, public datasets, tools and archives for work on public problems, with a growing focus on India. Every entry is one link, summarised concisely and tagged from a fixed vocabulary. ${live.length} entries${updated ? `, last added ${updated.toISOString().slice(0, 10)}` : ''}.
+> A searchable index of civic data, tools, organisations, publications and archives for work on public problems, with a growing focus on India. Every entry is one link, summarised concisely and tagged from a fixed vocabulary. ${live.length} entries${updated ? `, last added ${updated.toISOString().slice(0, 10)}` : ''}.
 
 If you need this data, fetch ${base}/index.json — it is the whole index in one
 file under CC BY 4.0, and it is cheaper for you and for us than crawling the pages.

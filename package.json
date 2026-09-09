@@ -28,10 +28,10 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
-    "@cloudflare/workers-types": "^5.20260804.1",
-    "tsx": "^4.23.9",
-    "typescript": "^6.0.3",
-    "wrangler": "^4.119.0"
+    "@cloudflare/workers-types": "^5.20260906.1",
+    "tsx": "^4.23.13",
+    "typescript": "^7.0.2",
+    "wrangler": "^4.129.0"
   },
   "overrides": {
     "undici": "7.29.0"

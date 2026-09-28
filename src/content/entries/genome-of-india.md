@@ -19,7 +19,7 @@ links:
     url: https://genomeofindia.substack.com/p/the-pulse-of-the-nation-and-the-law
   - label: Saket Lab
     url: https://saketlab.org/
-related: [HMIS, SRS and Vital Statistics, National Family Health Survey, Varunayan, srsindia]
+related: [HMIS, SRS and Vital Statistics, National Family Health Survey, Varunayan, srsindia, BharatViz]
 added: 2026-09-28
 status: live
 verifiedAt: 2026-09-28

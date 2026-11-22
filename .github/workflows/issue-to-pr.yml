@@ -62,7 +62,7 @@ jobs:
 
       - name: Open the pull request
         if: steps.convert.outputs.ok == 'true'
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           branch: entry/issue-${{ github.event.issue.number }}
           base: main
